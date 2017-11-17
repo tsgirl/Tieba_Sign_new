@@ -9,7 +9,7 @@ class plugin_xxx_post extends Plugin{
     array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_se', 'order' => '105')),
     array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_sxbk', 'order' => '109')),
   );
-  var $version='0.3.2';
+  var $version='0.3.3';
   function checkCompatibility(){
     if(version_compare(VERSION, '1.14.4.24', '<')) showmessage('签到助手版本过低，请升级');
   }
@@ -82,7 +82,8 @@ class plugin_xxx_post extends Plugin{
         $this->saveSetting ( 'se', '21' );
         $this->saveSetting ( 'first_end','15');
         case '0.3.1':
-        return '0.3.2';
+        case '0.3.2':
+        return '0.3.3';
       default:
         throw new Exception("Unknown plugin version: {$from_version}");
     }

@@ -202,7 +202,7 @@ function client_rppost($uid, $tieba, $content) {
 
   //====================
   $setting = DB::fetch_first ( "SELECT * FROM xxx_post_setting WHERE uid='{$uid}'" );
-  if ($setting ['client_type'] != 1){//Android
+  if ($setting ['client_type']){//Android
     $formdata = array(
       'BDUSS='.$BDUSS,
       '_client_id='.$__client_id,
@@ -254,7 +254,7 @@ function client_rppost($uid, $tieba, $content) {
       return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
     }
   }else{
-  //wapmode
+  //wapmode百度接口更新，已经废弃
     $pda = array(
       'BDUSS' => $BDUSS,
       'co' => trim($content),
