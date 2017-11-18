@@ -146,6 +146,9 @@ function load_setting(){
 		$('#send_mail').attr('checked', result.send_mail == "1");
 		$('#zhidao_sign').attr('checked', result.zhidao_sign == "1");
 		$('#wenku_sign').attr('checked', result.wenku_sign == "1");
+		$('#sign_method_1').attr('checked', result.sign_method == "1");
+		$('#sign_method_2').attr('checked', result.sign_method == "2");
+		$('#sign_method_3').attr('checked', result.sign_method == "3");
 		$('#bdbowser').removeAttr('disabled');
 		$('#error_mail').removeAttr('disabled');
 		$('#send_mail').removeAttr('disabled');

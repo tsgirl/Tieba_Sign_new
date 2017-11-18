@@ -25,7 +25,11 @@ if(!$uid){
 			$tieba = DB::fetch_first("SELECT * FROM my_tieba WHERE uid='{$uid}' ORDER BY RAND() LIMIT 0,1");
 			if(!$tieba) showmessage('没有喜欢的贴吧，请先刷新喜欢的贴吧列表', './#liked_tieba');
 			$setting = get_setting($uid);
-			list($status, $result, $exp) = client_sign($uid, $tieba);
+		  switch ($setting['sign_method']){
+		    case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba); break;
+		    case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba); break;
+		    default : list($status, $result, $exp) = client_sign($uid, $tieba);
+		  }
 			$status = $status==2 ? '签到成功' : '签到失败';
 			showmessage("<p>测试贴吧：{$tieba[name]}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>", './#setting', 1);
 			break;
@@ -48,6 +52,7 @@ if(!$uid){
 		case 'update_setting':
 			if($_POST['formhash'] != $formhash) break;
 			DB::update('member_setting', array(
+			  'sign_method' => $_POST['sign_method'],
 				'error_mail' => $_POST['error_mail'] ? 1 : 0,
 				'send_mail' => $_POST['send_mail'] ? 1 : 0,
 				'zhidao_sign' => $_POST['zhidao_sign'] ? 1 : 0,

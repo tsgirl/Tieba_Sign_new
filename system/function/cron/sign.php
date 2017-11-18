@@ -27,7 +27,11 @@ if($nowtime - $today < 1800){
 		}
 		$uid = $tieba['uid'];
 		$setting = get_setting($uid);
-		list($status, $result, $exp) = client_sign($uid, $tieba);
+		switch ($setting['sign_method']){
+		  case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba); break;
+		  case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba); break;
+		  default : list($status, $result, $exp) = client_sign($uid, $tieba);
+		}
 		if($status == 2){
 			if($exp){
 				DB::query("UPDATE sign_log SET status='2', exp='{$exp}' WHERE tid='{$tieba[tid]}' AND date='{$date}'");

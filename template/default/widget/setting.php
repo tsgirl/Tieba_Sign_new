@@ -5,7 +5,10 @@ if(!defined('IN_KKFRAME')) exit();
 <form method="post" action="index.php?action=update_setting" id="setting_form" onsubmit="return post_win(this.action, this.id)">
 <input type="hidden" name="formhash" value="<?php echo $formhash; ?>">
 <p>签到方式：</p>
-<p><label><input type="radio" name="sign_method" id="sign_method_3" value="3" checked readonly /> V3.0 (模拟客户端签到)</label></p>
+<p><label><input type="radio" name="sign_method" id="sign_method_1" value="1" readonly />模拟电脑网页签到</label></p>
+<p><label><input type="radio" name="sign_method" id="sign_method_2" value="2" readonly />模拟手机网页签到</label></p>
+<p><label><input type="radio" name="sign_method" id="sign_method_3" value="3" readonly />模拟手机客户端签到（默认）</label></p>
+<p>如果经常出现漏签，可以尝试更换签到方式</p>
 <p>附加签到：</p>
 <p><label><input type="checkbox" disabled name="zhidao_sign" id="zhidao_sign" value="1" /> 自动签到百度知道</label></p>
 <p><label><input type="checkbox" disabled name="wenku_sign" id="wenku_sign" value="1" /> 自动签到百度文库</label></p>

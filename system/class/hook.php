@@ -17,7 +17,7 @@ class HOOK{
         $classname = "plugin_{$pluginid}";
         if(!class_exists("plugin_{$pluginid}", false)) continue;
         $_PLUGIN['obj'][$pluginid] = new $classname();
-        if(method_exists($obj, '__construct') || method_exists($obj, '__destruct') || method_exists($obj, $classname)){
+        if(method_exists($_PLUGIN['obj'][$pluginid], '__construct') || method_exists($_PLUGIN['obj'][$pluginid], '__destruct') || method_exists($_PLUGIN['obj'][$pluginid], $classname)){
           unset($_PLUGIN['obj'][$pluginid]);
           continue;
         }
@@ -57,17 +57,17 @@ class HOOK{
     switch ($module['type']){
       case 'page':
         $_PLUGIN['page'][] = array(
-          'id' => "{$pluginid}-{$module[id]}",
+          'id' => "{$pluginid}-{$module['id']}",
           'title' => $module['title'],
           'file' => ROOT."./plugins/{$pluginid}/".$module['file'],
-          'admin' => $module['admin'],
+          'admin' => isset($module['admin'])?$module['admin']:null,
           );
         break;
       case 'shortcut':
         $_PLUGIN['shortcut'][] = array(
           'title' => $module['title'],
           'link' => $module['link'],
-          'admin' => $module['admin'],
+          'admin' => isset($module['admin'])?$module['admin']:null,
           );
         break;
       case 'cron':

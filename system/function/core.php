@@ -206,7 +206,7 @@ function get_setting($uid){
 	return $user_setting[$uid] = $cached_result;
 }
 function getSetting($k, $force = false){
-	if($force) return $setting[$k] = DB::result_first("SELECT v FROM setting WHERE k='{$k}'");
+	if($force||!isset($cache[$k])) return $setting[$k] = DB::result_first("SELECT v FROM setting WHERE k='{$k}'");
 	$cache = CACHE::get('setting');
 	return $cache[$k];
 }
@@ -423,6 +423,14 @@ function get_baidu_userinfo($uid){
 function client_sign($uid, $tieba){
 	require_once SYSTEM_ROOT.'./function/sign.php';
 	return _client_sign($uid, $tieba);
+}
+function wap_sign($uid, $tieba){
+	require_once SYSTEM_ROOT.'./function/sign.php';
+	return _client_sign_old($uid, $tieba);
+}
+function pc_sign($uid, $tieba){
+	require_once SYSTEM_ROOT.'./function/sign.php';
+	return _pc_sign($uid, $tieba);
 }
 function zhidao_sign($uid){
 	require_once SYSTEM_ROOT.'./function/sign.php';
