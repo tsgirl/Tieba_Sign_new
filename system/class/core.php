@@ -56,7 +56,7 @@ class core {
 				$_password = substr(md5($user['password']), 8, 8);
 				if ($user && $password == $_password) {
 					$exptime = TIMESTAMP + 900;
-					dsetcookie('token', authcode("{$cookiever}\t{$uid}\t{$user[username]}\t{$exptime}\t{$password}", 'ENCODE'));
+					dsetcookie('token', authcode("{$cookiever}\t{$uid}\t{$user['username']}\t{$exptime}\t{$password}", 'ENCODE'));
 				} else {
 					unset($uid, $username, $exptime);
 					dsetcookie('token');

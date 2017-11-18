@@ -28,7 +28,7 @@ class db_mysql {
     return mysql_select_db($dbname, $this->curlink);
   }
    function fetch_array($query, $result_type = MYSQL_ASSOC) {
-    return mysql_fetch_array($query, $result_type);
+    return mysql_fetch_array($query);
   }
    function fetch_first($sql) {
     return $this->fetch_array($this->query($sql));
@@ -120,7 +120,7 @@ class db_mysqli {
     return mysqli_select_db($this->curlink, $dbname);
   }
    function fetch_array($query, $result_type = MYSQLI_ASSOC) {
-    return mysqli_fetch_array($query, $result_type);
+    return mysqli_fetch_array($query);
   }
    function fetch_first($sql) {
     return $this->fetch_array($this->query($sql));
@@ -234,7 +234,7 @@ class DB {
     return DB::_execute('insert_id');
   }
   public static function fetch($resourceid, $type=null) {
-    if(!$type) $type = function_exists('mysql_connect') ? MYSQL_ASSOC : MYSQLI_ASSOC;
+    if(!$type) return DB::_execute('fetch_array', $resourceid);
     return DB::_execute('fetch_array', $resourceid, $type);
   }
   public static function fetch_first($sql) {

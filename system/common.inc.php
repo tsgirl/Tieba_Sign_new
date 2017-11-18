@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ERROR | E_PARSE | E_WARNING);
+error_reporting(E_ERROR | E_PARSE);
 define('IN_KKFRAME', true);
 define('SYSTEM_ROOT', dirname(__FILE__).'/');
 define('ROOT', dirname(SYSTEM_ROOT).'/');
@@ -7,9 +7,11 @@ define('TIMESTAMP', time());
 define('VERSION', '1.17.11.17');
 define('UI_VERSION', '1.0');
 
-//define('DEBUG_ENABLED', isset($_GET['debug']));
-//error_reporting(DEBUG_ENABLED ? E_ALL & !E_NOTICE & !E_STRICT : E_ERROR | E_PARSE);
-//@ini_set('display_errors', DEBUG_ENABLED);
+define('DEBUG_ENABLED', isset($_GET['debug']));
+if(DEBUG_ENABLED){
+  error_reporting(E_ALL);
+  @ini_set('display_errors', DEBUG_ENABLED);
+}
 
 require_once SYSTEM_ROOT.'./class/kerror.php';
 set_exception_handler(array('kerror', 'exception_error'));
