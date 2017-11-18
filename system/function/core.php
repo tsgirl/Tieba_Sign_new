@@ -206,8 +206,8 @@ function get_setting($uid){
 	return $user_setting[$uid] = $cached_result;
 }
 function getSetting($k, $force = false){
-	if($force||!isset($cache[$k])) return $setting[$k] = DB::result_first("SELECT v FROM setting WHERE k='{$k}'");
 	$cache = CACHE::get('setting');
+	if($force||!isset($cache[$k])) return $setting[$k] = DB::result_first("SELECT v FROM setting WHERE k='{$k}'");
 	return $cache[$k];
 }
 function saveSetting($k, $v){
