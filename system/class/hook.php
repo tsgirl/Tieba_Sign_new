@@ -80,13 +80,13 @@ class HOOK{
     if($_PLUGIN['page']){
       foreach ($_PLUGIN['page'] as $page){
         if($page['admin'] && !is_admin($uid)) continue;
-        echo "<li id=\"menu_{$page[id]}\"><a href=\"#{$page[id]}\">{$page[title]}</a></li>";
+        echo "<li id=\"menu_{$page['id']}\"><a href=\"#{$page['id']}\">{$page['title']}</a></li>";
       }
     }
     if($_PLUGIN['shortcut']){
       foreach ($_PLUGIN['shortcut'] as $page){
         if($page['admin'] && !is_admin($uid)) continue;
-        echo "<li><a href=\"{$page[link]}\">{$page[title]}</a></li>";
+        echo "<li><a href=\"{$page['link']}\">{$page['title']}</a></li>";
       }
     }
   }
@@ -95,7 +95,7 @@ class HOOK{
     if($_PLUGIN['page']){
       foreach($_PLUGIN['page'] as $page){
         if($page['admin'] && !is_admin($uid)) continue;
-        echo "<div id=\"content-{$page[id]}\" class=\"hidden\">";
+        echo "<div id=\"content-{$page['id']}\" class=\"hidden\">";
         @include $page['file'];
         echo "</div>\r\n";
       }
