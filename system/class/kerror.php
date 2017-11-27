@@ -31,8 +31,8 @@ class kerror {
 			if (in_array($func, $skipfunc)) {
 				break;
 			}
-			$error[line] = sprintf('%04d', $error['line']);
-			$show .= "<li>[Line: $error[line]]".$file."($func)</li>";
+			$error['line'] = sprintf('%04d', $error['line']);
+			$show .= "<li>[Line: {$error['line']}]".$file."($func)</li>";
 			$log .= !empty($log) ? '->' : '';
 			$file.':'.$error['line'];
 			$log .= $file.':'.$error['line'];
@@ -44,8 +44,8 @@ class kerror {
 		list($showtrace, $logtrace) = kerror::debug_backtrace();
 		$db = &DB::object();
 		$dberrno = $db->errno();
-		$dberror = str_replace($db->tablepre, '', $db->error());
-		$sql = htmlspecialchars(str_replace($db->tablepre, '', $sql));
+		$dberror = $db->error();
+		$sql = htmlspecialchars($sql);
 		$msg = '<li>'.$message.'</li>';
 		$msg .= $dberrno ? '<li>['.$dberrno.'] '.$dberror.'</li>' : '';
 		$msg .= $sql ? '<li>[Query] '.$sql.'</li>' : '';

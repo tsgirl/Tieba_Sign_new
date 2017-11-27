@@ -41,6 +41,7 @@ function _get_tbs($uid){
     'timestamp' => time().rand(111,999),
     'with_group' => '1'
   );
+  $x='';
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
@@ -333,12 +334,14 @@ function _update_liked_tieba($uid, $ignore_error = false, $allow_deletion = true
   return array($insert, $deleted);
 }
 
-function _client_sign_old($uid, $tieba){
+function _client_sign_old($uid, $tieba, $BDUSS=null, $stoken=null){
 //模拟手机网页签到
-  $cookie = get_cookie($uid);
-  $matches=explode('=', $cookie);
-  $BDUSS = trim($matches[1]);
-  if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  if(!$BDUSS){
+    $cookie = get_cookie($uid);
+    $matches=explode('=', $cookie);
+    $BDUSS = trim($matches[1]);
+    if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  }
   $tbs_tsgirl=get_tbs($uid);
   $cid=time().'_'.rand(100,999);
   $cookie_tsgirl='BAIDU_WISE_UID=wapp_'.time().'985_211;  
@@ -351,6 +354,7 @@ function _client_sign_old($uid, $tieba){
              app_open=1; 
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
+  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
   $ch = curl_init('https://tieba.baidu.com/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.urlencode($tieba['name']).'&is_like=1&fid='.$tieba['fid']);
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -374,20 +378,22 @@ function _client_sign_old($uid, $tieba){
     switch($res->no){
       case '1101':    // 已经签过
         return array(2, $res->no.':'.$res->error, 0);
-      case '1010':    // 已经签过
-        return array(2, $res->no.':'.$res->error, 0);
+      case '1010':    // 贴吧被封
+        return array(2, $res->no.':'.$res->error, 340001);
       default:
         return array(-1, $res->no.':'.$res->error.'(/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.$tieba['name'].'&is_like=1&fid='.$tieba['fid'].')' , 0);
     }
   }
 }
 
-function _client_sign($uid, $tieba){
+function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
 //真正的客户端签到
-  $cookie = get_cookie($uid);
-  $matches=explode('=', $cookie);
-  $BDUSS = trim($matches[1]);
-  if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  if(!$BDUSS){
+    $cookie = get_cookie($uid);
+    $matches=explode('=', $cookie);
+    $BDUSS = trim($matches[1]);
+    if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  }
   $_imei=md5($BDUSS);
   $_imei=str_replace("a", "3", $_imei);
   $_imei=str_replace("b", "9", $_imei);
@@ -437,7 +443,7 @@ function _client_sign($uid, $tieba){
   curl_close($ch);
   $res = @json_decode($sign_json, true);
   if(!$res) return array(1, 'JSON 解析错误', 0);
-  if($res['user_info']){
+  if(isset($res['user_info'])){
     $exp = $res['user_info']['sign_bonus_point'];
     return array(2, "签到成功，经验值上升 {$exp}", $exp);
   }else{
@@ -447,24 +453,28 @@ function _client_sign($uid, $tieba){
       case '3':
         return array(2, $res['error_msg'], 0);
       case '1':      // 未登录
-        return array(-1, "ERROR-{$res[error_code]}: ".$res['error_msg'].' （Cookie 过期或不正确）', 0);
+        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
       case '160004':    // 不支持
-        return array(-1, "ERROR-{$res[error_code]}: ".$res['error_msg'], 0);
+        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
       case '160003':    // 零点 稍后再试
       case '160008':    // 太快了
-        return array(1, "ERROR-{$res[error_code]}: ".$res['error_msg'], 0);
+        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+      case '340006':    // this tieba is banned!!!
+        return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
       default:
-        return array(1, "ERROR-{$res[error_code]}: ".$res['error_msg'], 0);
+        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
     }
   }
 }
 
-function _pc_sign($uid, $tieba){
+function _pc_sign($uid, $tieba, $BDUSS=null, $stoken=null){
 //电脑签到
-  $cookie = get_cookie($uid);
-  $matches=explode('=', $cookie);
-  $BDUSS = trim($matches[1]);
-  if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  if(!$BDUSS){
+    $cookie = get_cookie($uid);
+    $matches=explode('=', $cookie);
+    $BDUSS = trim($matches[1]);
+    if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  }
   $tbs_tsgirl=get_tbs($uid);
   $cookie_tsgirl='BAIDU_WISE_UID=wapp_'.time().'985_211;  
              USER_JUMP=2; 
@@ -476,6 +486,7 @@ function _pc_sign($uid, $tieba){
              app_open=1; 
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
+  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
   $postfields='ie=utf-8&tbs='.$tbs_tsgirl.'&kw='.urlencode($tieba['name']);
   $ch = curl_init('https://tieba.baidu.com/sign/add');
   curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -503,13 +514,64 @@ function _pc_sign($uid, $tieba){
     switch($res->no){
       case '1101':    // 已经签过
         return array(2, $res->no.':'.$res->error, 0);
-      case '1010':    // 已经签过
-        return array(2, $res->no.':'.$res->error, 0);
+      case '1010':    // 贴吧被封
+        return array(2, $res->no.':'.$res->error, 340001);
       default:
         return array(-1, $res->no.':'.$res->error, 0);
     }
   }
 }
+
+function _onekey_sign($uid, $BDUSS=null, $stoken=null){
+//一键签到
+  if(!$BDUSS){
+    $cookie = get_cookie($uid);
+    $matches=explode('=', $cookie);
+    $BDUSS = trim($matches[1]);
+    if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  }
+  $tbs_tsgirl=get_tbs($uid);
+  $cookie_tsgirl='BAIDU_WISE_UID=wapp_'.time().'985_211;  
+             USER_JUMP=2; 
+             CLIENTWIDTH=320; 
+             CLIENTHEIGHT=480; 
+             index_cutoff_cover=1; 
+             loginCk=1; 
+             BDUSS='.$BDUSS.';
+             app_open=1; 
+             SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
+             mo_originid=2; LASW=1024';
+  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
+  $postfields='ie=utf-8&tbs='.$tbs_tsgirl;
+  $ch = curl_init('http://tieba.baidu.com/tbmall/onekeySignin1');
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+    'Accept: application/json',
+    'Accept-Language: zh-CN,zh;q=0.9'
+  ));
+  curl_setopt($ch, CURLOPT_COOKIE, $cookie_tsgirl);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $postfields);
+  curl_setopt($ch, CURLOPT_REFERER, 'https://tieba.baidu.com/');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36');
+  curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  $res= json_decode(curl_exec($ch), true);
+  curl_close($ch);
+  if(!$res) return array(1, 'JSON 解析错误', null);
+  if($res['no']==0){
+    return array(2, "签到成功", $res['data']['forum_list']);//返回已签到贴吧详细信息
+  }elseif($res['no']==2280006){
+    return array(2, 0, $res['no'].':'.$res['error']);
+  }else{
+    return array(-1, $res['no'].':'.$res['error'], null);
+  }
+}
+
 
 function _zhidao_sign($uid){
   $ch = curl_init('http://zhidao.baidu.com/submit/user');

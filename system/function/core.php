@@ -186,6 +186,7 @@ function get_cookie($uid){
 }
 function save_cookie($uid, $cookie){
 	$cookie = base64_encode($cookie);
+	CACHE::clean('setting');
 	DB::query("UPDATE member_setting SET cookie='{$cookie}' WHERE uid='{$uid}'");
 }
 function get_username($uid){
@@ -200,7 +201,7 @@ function get_setting($uid){
 	$cached_result = CACHE::get('user_setting_'.$uid);
 	if(!$cached_result){
 		$cached_result = DB::fetch_first("SELECT * FROM member_setting WHERE uid='{$uid}'");
-		unset($cached_result['cookie']);
+		//unset($cached_result['cookie']);
 		CACHE::save('user_setting_'.$uid, $cached_result);
 	}
 	return $user_setting[$uid] = $cached_result;
@@ -420,17 +421,21 @@ function get_baidu_userinfo($uid){
 	require_once SYSTEM_ROOT.'./function/sign.php';
 	return _get_baidu_userinfo($uid);
 }
-function client_sign($uid, $tieba){
+function client_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-	return _client_sign($uid, $tieba);
+	return _client_sign($uid, $tieba, $bduss, $stoken);
 }
-function wap_sign($uid, $tieba){
+function wap_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-	return _client_sign_old($uid, $tieba);
+	return _client_sign_old($uid, $tieba, $stoken);
 }
-function pc_sign($uid, $tieba){
+function onekey_sign($uid, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-	return _pc_sign($uid, $tieba);
+	return _onekey_sign($uid, $stoken, $bduss, $stoken);
+}
+function pc_sign($uid, $tieba, $bduss=null, $stoken=null){
+	require_once SYSTEM_ROOT.'./function/sign.php';
+	return _pc_sign($uid, $tieba, $bduss, $stoken);
 }
 function zhidao_sign($uid){
 	require_once SYSTEM_ROOT.'./function/sign.php';

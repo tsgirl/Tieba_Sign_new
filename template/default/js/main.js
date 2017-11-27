@@ -149,11 +149,14 @@ function load_setting(){
 		$('#sign_method_1').attr('checked', result.sign_method == "1");
 		$('#sign_method_2').attr('checked', result.sign_method == "2");
 		$('#sign_method_3').attr('checked', result.sign_method == "3");
+		$('#force_sign').attr('checked', result.force_sign == "1");
 		$('#bdbowser').removeAttr('disabled');
 		$('#error_mail').removeAttr('disabled');
 		$('#send_mail').removeAttr('disabled');
 		$('#zhidao_sign').removeAttr('disabled');
 		$('#wenku_sign').removeAttr('disabled');
+		$('#force_sign').removeAttr('disabled');
+		$('#stoken').attr('value', result.stoken ? result.stoken : "");
 	}).fail(function() { createWindow().setTitle('系统错误').setContent('发生未知错误: 无法获取系统设置').addButton('确定', function(){ location.reload(); }).append(); }).always(function(){ hideloading(); });
 }
 function load_guide(){

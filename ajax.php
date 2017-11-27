@@ -16,6 +16,7 @@ switch($_GET['v']){
 		break;
 	case 'get-setting':
 		$data = get_setting($uid);
+		if($data['stoken']) $data['stoken']=base64_decode($data['stoken']);
 		break;
 	case 'sign-log':
 		$date = date('Ymd');
