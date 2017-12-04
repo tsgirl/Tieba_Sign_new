@@ -427,7 +427,7 @@ function client_sign($uid, $tieba, $bduss=null, $stoken=null){
 }
 function wap_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-	return _client_sign_old($uid, $tieba, $stoken);
+	return _client_sign_old($uid, $tieba, $bduss, $stoken);
 }
 function onekey_sign($uid, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';

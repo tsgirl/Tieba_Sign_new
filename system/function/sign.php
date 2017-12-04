@@ -354,7 +354,7 @@ function _client_sign_old($uid, $tieba, $BDUSS=null, $stoken=null){
              app_open=1; 
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
-  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
+  if($stoken) $cookie_tsgirl.=';STOKEN='.$stoken;
   $ch = curl_init('https://tieba.baidu.com/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.urlencode($tieba['name']).'&is_like=1&fid='.$tieba['fid']);
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -381,7 +381,7 @@ function _client_sign_old($uid, $tieba, $BDUSS=null, $stoken=null){
       case '1010':    // 贴吧被封
         return array(2, $res->no.':'.$res->error, 340001);
       default:
-        return array(-1, $res->no.':'.$res->error.'(/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.$tieba['name'].'&is_like=1&fid='.$tieba['fid'].')' , 0);
+        return array(-1, $res->no.':'.$res->error.'(/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.$tieba['name'].'&is_like=1&fid='.$tieba['fid'].')'.$cookie_tsgirl , 0);
     }
   }
 }
@@ -486,7 +486,7 @@ function _pc_sign($uid, $tieba, $BDUSS=null, $stoken=null){
              app_open=1; 
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
-  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
+  if($stoken) $cookie_tsgirl.='; STOKEN='.$stoken;
   $postfields='ie=utf-8&tbs='.$tbs_tsgirl.'&kw='.urlencode($tieba['name']);
   $ch = curl_init('https://tieba.baidu.com/sign/add');
   curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -541,7 +541,7 @@ function _onekey_sign($uid, $BDUSS=null, $stoken=null){
              app_open=1; 
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
-  if($stoken) $cookie_tsgirl.='; stoken='.$stoken;
+  if($stoken) $cookie_tsgirl.='; STOKEN='.$stoken;
   $postfields='ie=utf-8&tbs='.$tbs_tsgirl;
   $ch = curl_init('http://tieba.baidu.com/tbmall/onekeySignin1');
   curl_setopt($ch, CURLOPT_HEADER, 0);
