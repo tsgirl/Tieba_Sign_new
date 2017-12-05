@@ -18,8 +18,9 @@ if(!defined('IN_KKFRAME')) exit();
 <p>**测试性功能**</p>
 <p><label><input type="checkbox" disabled name="force_sign" id="force_sign" value="1" />使用一键签到接口暴力签到被封禁贴吧，适用于强迫症患者(但可能导致后续签到记录经验值异常)</label></p>
 <p>stoken：<label><input type="text" name="stoken" id="stoken" placeholder="输入百度账号的stoken值" /></label></p>
+<p><a href="index.php?action=check_stoken&formhash=<?php echo $formhash; ?>" class="btn" onclick="return msg_redirect_action(this.href)">检查stoken</a>(请先保存设置)</p>
 <p>stoken是百度近来投入使用的另一个认证cookie，在浏览器中查看bduss时可以看到，虽然暂时还用不上……</p>
-<p>**注意：这些测试性功能的效果都不被保证，并且可能在以后的版本中被保留或放弃，请勿过于依赖。**</p>
+<p>**注意：这些测试性功能的效果都不被保证，并且可能在以后的版本中被修改或放弃，请勿过于依赖。**</p>
 <p><input type="submit" value="保存设置" /></p>
 </form>
 <?php HOOK::run('user_setting'); ?>

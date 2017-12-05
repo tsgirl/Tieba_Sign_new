@@ -8,7 +8,7 @@ define('VERSION', '1.17.11.27');
 define('UI_VERSION', '1.0');
 
 define('DEBUG_ENABLED', isset($_GET['debug']));
-if(DEBUG_ENABLED){
+if(defined('DEBUG_ENABLED')){
   error_reporting(E_ALL);
   @ini_set('display_errors', DEBUG_ENABLED);
 }

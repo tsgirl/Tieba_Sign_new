@@ -59,8 +59,9 @@ function _get_tbs($uid){
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
   $gd = curl_exec($ch);
   curl_close($ch);
-  $gd=json_decode($gd);
-  return $tbs[$uid]=$gd->anti->tbs;
+  $gd=json_decode($gd, true);
+  if(isset($gd['anti']['tbs'])) return $tbs[$uid]=$gd['anti']['tbs'];
+  return null;
 }
 
 function _verify_cookie($cookie){
@@ -530,7 +531,6 @@ function _onekey_sign($uid, $BDUSS=null, $stoken=null){
     $BDUSS = trim($matches[1]);
     if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   }
-  $tbs_tsgirl=get_tbs($uid);
   $cookie_tsgirl='BAIDU_WISE_UID=wapp_'.time().'985_211;  
              USER_JUMP=2; 
              CLIENTWIDTH=320; 
@@ -542,7 +542,7 @@ function _onekey_sign($uid, $BDUSS=null, $stoken=null){
              SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
              mo_originid=2; LASW=1024';
   if($stoken) $cookie_tsgirl.='; STOKEN='.$stoken;
-  $postfields='ie=utf-8&tbs='.$tbs_tsgirl;
+  $postfields='ie=utf-8&tbs='.get_tbs($uid);
   $ch = curl_init('http://tieba.baidu.com/tbmall/onekeySignin1');
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -656,4 +656,34 @@ function _get_uid($BDUSS){
   return $gd->user->id;
 }
 
+function _check_stoken($BDUSS, $stoken){
+  $cookie_tsgirl='BAIDU_WISE_UID=wapp_'.time().'985_211;  
+             USER_JUMP=2; 
+             CLIENTWIDTH=320; 
+             CLIENTHEIGHT=480; 
+             index_cutoff_cover=1; 
+             loginCk=1; 
+             BDUSS='.$BDUSS.';
+             app_open=1; 
+             SEENKW=%E7%AC%AC%E4%B8%89%E7%B1%BB%E5%A4%A9%E4%BD%BF;
+             mo_originid=2; LASW=1024; STOKEN='.$stoken;
+  $ch = curl_init('http://tieba.baidu.com/f/user/json_userinfo?_='.time().rand(111,999));
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Accept: application/json',
+    'Accept-Language: zh-CN,zh;q=0.9'
+  ));
+  curl_setopt($ch, CURLOPT_COOKIE, $cookie_tsgirl);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_REFERER, 'https://tieba.baidu.com/');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36');
+  curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+  $re=curl_exec($ch);
+  curl_close($ch);
+  if(!json_decode($re)) return false;
+  return true;
+}
     

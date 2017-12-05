@@ -37,6 +37,7 @@ if($count){
 		if(!defined('SIGN_LOOP')) break;
 		sleep(1);
 		}
+		cron_set_nextrun(TIMESTAMP + 60);
 }else{
 		cron_set_nextrun($tomorrow + 3600);
 }

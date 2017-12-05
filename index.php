@@ -57,6 +57,24 @@ if(!$uid){
       $status = $status==2 ? '签到成功' : '签到失败';
       showmessage("<p>测试贴吧：{$tieba[name]}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>", './#setting', 1);
       break;
+    case 'check_stoken':
+      $setting = get_setting($uid);
+      if(!$setting['stoken']) showmessage('未设置stoken！', './#setting', 1);
+      $setting['stoken']=base64_decode($setting['stoken']);
+      if(!$setting['cookie']){
+        showmessage('找不到 BDUSS Cookie', './#setting', 1);
+        break;
+      }
+      $matches=explode('=', base64_decode($setting['cookie']));
+      $setting['cookie'] = trim($matches[1]);
+      if(!$setting['cookie']){
+        showmessage('无法解析BDUSS！', './#setting', 1);
+        break;
+      }
+      unset($matches);
+      $vaildity=check_stoken($setting['cookie'], $setting['stoken']);
+      showmessage('<p>BDUSS='.$setting['cookie'].'</p><p>STOKEN='.$setting['stoken'].'</p><p>'.($vaildity?'stoken有效！':'stoken无效！').'</p>', './#setting', 1);
+      break;
     case 'clear_cookie':
       if($_GET['formhash'] != $formhash) break;
       DB::query("UPDATE member_setting SET cookie='' WHERE uid='{$uid}'");

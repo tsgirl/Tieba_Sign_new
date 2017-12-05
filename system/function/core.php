@@ -197,7 +197,7 @@ function get_username($uid){
 }
 function get_setting($uid){
 	static $user_setting = array();
-	if($user_setting[$uid]) return $user_setting[$uid];
+	if(isset($user_setting[$uid])) return $user_setting[$uid];
 	$cached_result = CACHE::get('user_setting_'.$uid);
 	if(!$cached_result){
 		$cached_result = DB::fetch_first("SELECT * FROM member_setting WHERE uid='{$uid}'");
@@ -431,7 +431,7 @@ function wap_sign($uid, $tieba, $bduss=null, $stoken=null){
 }
 function onekey_sign($uid, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-	return _onekey_sign($uid, $stoken, $bduss, $stoken);
+	return _onekey_sign($uid, $bduss, $stoken);
 }
 function pc_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
@@ -466,6 +466,10 @@ function delete_user($uid){
 	_delete_user($uid);
 }
 function get_uid($bduss){
-	require_once SYSTEM_ROOT.'./function/member.php';
+	require_once SYSTEM_ROOT.'./function/sign.php';
 	return _get_uid($bduss);
+}
+function check_stoken($bduss, $stoken){
+	require_once SYSTEM_ROOT.'./function/sign.php';
+	return _check_stoken($bduss, $stoken);
 }
