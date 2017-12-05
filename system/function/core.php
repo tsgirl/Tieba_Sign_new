@@ -423,6 +423,7 @@ function get_baidu_userinfo($uid){
 }
 function client_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
+              if($stoken) return _client_sign_new($uid, $tieba, $bduss, $stoken);
 	return _client_sign($uid, $tieba, $bduss, $stoken);
 }
 function wap_sign($uid, $tieba, $bduss=null, $stoken=null){
@@ -472,4 +473,8 @@ function get_uid($bduss){
 function check_stoken($bduss, $stoken){
 	require_once SYSTEM_ROOT.'./function/sign.php';
 	return _check_stoken($bduss, $stoken);
+}
+function device_id($bduss, $index=0){
+  require_once SYSTEM_ROOT.'./function/sign.php';
+  return _device_id($bduss, $index);
 }

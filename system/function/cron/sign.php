@@ -27,9 +27,19 @@ if($nowtime - $today < 1800){
     }
     $uid = $tieba['uid'];
     $setting = get_setting($uid);
-    if($setting['stoken']) $setting['stoken']=base64_decode($setting['stoken']);
     $matches=explode('=', base64_decode($setting['cookie']));
     $setting['cookie'] = trim($matches[1]);
+    if($setting['stoken']){  
+      $setting['stoken']=base64_decode($setting['stoken']);
+      $stokenhash=md5($setting['cookie'].$setting['stoken']);
+      if($setting['checked']!=$stokenhash){
+        if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
+          DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+        }else{
+          $setting['stoken']=null;
+        }
+      }
+    }
     unset($matches);
     if($setting['cookie']) {
       if(defined('DEBUG_ENABLED')) echo '<br />Signing '.$tieba['name'].' for uid '.$uid.' using method '.$setting['sign_method'].'...';

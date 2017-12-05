@@ -103,23 +103,14 @@ EOF;
 }
 
 function get_random_tid($tieba,$BDUSS){
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS, 3);
   $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '6.6.6',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '7.4.5',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'from' => 'an_leshangdian',
     'kw' => $tieba,
     'model' => 'GM-T1',
@@ -139,6 +130,7 @@ function get_random_tid($tieba,$BDUSS){
     'timestamp' => time().rand(100,999),
     'with_group' => '1'
   );
+  $x='';
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
@@ -147,12 +139,16 @@ function get_random_tid($tieba,$BDUSS){
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+  curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
+      'Content-Type: application/x-www-form-urlencoded'
+  ) );
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6 Chrome FuckBaidu 2.3 Mozilla 6.66 MSIE 10.0 capable');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); 
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); 
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
   $gd = curl_exec($ch);
   curl_close($ch);
   $gd=json_decode($gd);
@@ -166,22 +162,30 @@ function get_random_tid($tieba,$BDUSS){
 }
 
 
-function client_rppost($uid, $tieba, $content) {
-  $cookie = get_cookie ( $uid );
+function client_rppost($uid, $tieba, $content=null) {
+  $setting = get_setting($uid);
+  if(defined('DEBUG_ENABLED')) print_r($setting);
+  $cookie = base64_decode($setting['cookie']);
   $matches=explode('=', $cookie);
   //preg_match ( '/BDUSS=([^ ;]+);/i', $cookie, $matches );
   $BDUSS = trim ( $matches [1] );
+  
   if (! $BDUSS) return array (- 1,'找不到 BDUSS Cookie' );
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  if($setting['stoken']){  
+    $setting['stoken']=base64_decode($setting['stoken']);
+    $stokenhash=md5($BDUSS.$setting['stoken']);
+    if(defined('DEBUG_ENABLED')) echo('STOKENHASH='.$stokenhash.', expected '.$setting['checked']);
+    if($setting['checked']!=$stokenhash){
+      if(defined('DEBUG_ENABLED')) echo('stokenhash does not match');
+      if($vaildity=check_stoken($BDUSS, $setting['stoken'])){
+        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      }else{
+        if(defined('DEBUG_ENABLED')) echo('stoken verification failed.');
+        $setting['stoken']=null;
+      }
+    }
+  }
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS, 3);
   if (! $content) $content=get_random_content();
   $tid=$tieba['tid'];
   if (!$tieba['tid']){
@@ -201,60 +205,148 @@ function client_rppost($uid, $tieba, $content) {
   }
 
   //====================
-  $setting = DB::fetch_first ( "SELECT * FROM xxx_post_setting WHERE uid='{$uid}'" );
-  if ($setting ['client_type']){//Android
-    $formdata = array(
-      'BDUSS='.$BDUSS,
-      '_client_id='.$__client_id,
-      '_client_type=2',
-      '_client_version=6.6.6',
-      '_phone_imei='.$_imei,
-      'anonymous=1',
-      'content='.trim($content),
-      'cuid='.$_cuid,
-      'fid='.$fid_tsgirl,
-      'from=an_leshangdian',
-      'is_ad=0',
-      'is_location=2',
-      'kw='.$kw_tsgirl,
-      'model=H701',
-      'new_vcode=1',
-      'reply_uid=null',
-      'stErrorNums=1',
-      'stMethod=1',
-      'stMode=1',
-      'stSize='.rand(111,9999),
-      'stTime='.rand(111,999),
-      'stTimesNum=1',
-      'tbs='.$tbs_tsgirl,
-      'tid='.$tid,
-      'timestamp='.time().rand(111,999),
-      'vcode_tag=12'
-    );
-    $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata)."tiebaclient!!!"));
-    $ch = curl_init ( 'http://c.tieba.baidu.com/c/c/post/add' );
-    curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
-        'Content-Type: application/x-www-form-urlencoded'
-    ) );
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6 Chrome FuckBaidu 2.3 Mozilla 6.66 MSIE 10.0 capable');
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    $re = curl_exec($ch);
-    curl_close($ch);
-    $re=json_decode($re);
-    if (!$re) return array (0,'JSON 解析错误' );
-    if ($re->error_code == 0){
-      return array (2,'发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
-    }else{
-      return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
-    }
-  }else{
-  //wapmode百度接口更新，已经废弃
+  $setting2 = DB::fetch_first ( "SELECT * FROM xxx_post_setting WHERE uid='{$uid}'" );
+  switch ($setting2 ['client_type']){
+    case 4:
+      $formdata=array(
+        "BDUSS=".$BDUSS,//替换你的cookies,最后不要";"的
+        '_client_id=03-00-DA-59-05-00-72-96-06-00-01-00-04-00-4C-43-01-00-34-F4-02-00-BC-25-09-00-4E-36',
+        '_client_type=4',
+        '_client_version=1.2.1.17',
+        '_phone_imei=540b43b59d21b7a4824e1fd31b08e9a6',
+        'anonymous=0',
+        'content='.$content,
+        'fid='.$fid_tsgirl,
+        "kw=".$kw_tsgirl,
+        "net_type=3",
+        'tbs='.$tbs_tsgirl,
+        'tid='.$tid,
+        'title='
+      );
+      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata)."tiebaclient!!!"));
+      $ch = curl_init ( 'http://c.tieba.baidu.com/c/c/post/add' );
+      curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
+          'Content-Type: application/x-www-form-urlencoded'
+      ) );
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+      curl_setopt($ch, CURLOPT_POST, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+      curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Windows 8 1.2.1.17');
+      curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+      $re = curl_exec($ch);
+      curl_close($ch);
+      $re=json_decode($re);
+      if (!$re) return array (0,'JSON 解析错误' );
+      if ($re->error_code == 0){
+        return array (2,'Windows8客户端发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
+      }else{
+        return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
+      }
+      break;
+    case 1:
+    //placeholder
+    case 3:
+    //placeholder
+    default:
+      if($setting['stoken']){
+        $clientversion='8.6.8.0';
+        $formdata = array(
+          'BDUSS='.$BDUSS,
+          '_client_id='.$clientid,
+          '_client_type=2',
+          '_client_version='.$clientversion,
+          '_phone_imei='.$phoneimei,
+          'anonymous=1',
+          'barrage_time=0',
+          'can_no_forum=0',
+          'content='.trim($content),
+          'cuid='.$cuid,
+          'fid='.$fid_tsgirl,
+          'from=an_leshangdian',
+          'is_ad=0',
+          'is_barrage=0',
+          'is_feedback=0',
+          'kw='.$kw_tsgirl,
+          'model=GM-T1',
+          'new_vcode=1',
+          'reply_uid=null',
+          'stErrorNums=1',
+          'stMethod=1',
+          'stMode=1',
+          'stSize='.rand(111,9999),
+          'stTime='.rand(111,999),
+          'stTimesNum=1',
+          'stoken='.$setting['stoken'],
+          'tbs='.$tbs_tsgirl,
+          'tid='.$tid,
+          'timestamp='.time().rand(111,999),
+          'v_fid=',
+          'v_fname=',
+          'vcode_tag=12'
+        );
+      }else{
+        $clientversion='7.4.5';
+        $formdata = array(
+          'BDUSS='.$BDUSS,
+          '_client_id='.$clientid,
+          '_client_type=2',
+          '_client_version='.$clientversion,
+          '_phone_imei='.$phoneimei,
+          'anonymous=1',
+          'content='.trim($content),
+          'cuid='.$cuid,
+          'fid='.$fid_tsgirl,
+          'from=an_leshangdian',
+          'is_ad=0',
+          'is_location=2',
+          'kw='.$kw_tsgirl,
+          'model=GM-T1',
+          'new_vcode=1',
+          'reply_uid=null',
+          'stErrorNums=1',
+          'stMethod=1',
+          'stMode=1',
+          'stSize='.rand(111,9999),
+          'stTime='.rand(111,999),
+          'stTimesNum=1',
+          'tbs='.$tbs_tsgirl,
+          'tid='.$tid,
+          'timestamp='.time().rand(111,999),
+          'vcode_tag=12'
+        );
+      }
+      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata)."tiebaclient!!!"));
+      $ch = curl_init ( 'http://c.tieba.baidu.com/c/c/post/add' );
+      curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
+          'Content-Type: application/x-www-form-urlencoded'
+      ) );
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+      curl_setopt($ch, CURLOPT_POST, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+      curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android '.$clientversion);
+      curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+      $re = curl_exec($ch);
+      curl_close($ch);
+      $re=json_decode($re);
+      if (!$re) return array (0,'JSON 解析错误' );
+      if ($re->error_code == 0){
+        return array (2,'Android客户端发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
+      }else{
+        return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
+      }
+     
+  }//end switch
+}//end function client_rppost
+/////////////////////////////////////
+  /*wapmode百度接口更新，已经废弃
     $pda = array(
       'BDUSS' => $BDUSS,
       'co' => trim($content),
@@ -287,7 +379,7 @@ function client_rppost($uid, $tieba, $content) {
     curl_setopt($ch, CURLOPT_COOKIE, $cookie_tsgirl);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6 Chrome FuckBaidu 2.13 Mozilla 6.66 MSIE 10.0 capable');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5 Chrome FuckBaidu 2.13 Mozilla 6.66 MSIE 10.0 capable');
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -298,8 +390,5 @@ function client_rppost($uid, $tieba, $content) {
       return array (2,'发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
     }else{
       return array($re->no, $re->no.':' . $re->error.$x);
-    }
-  }
-}
-
+    }*/
 ?>

@@ -6,26 +6,17 @@ function _get_tbs($uid){
   $cookie = get_cookie($uid);
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'from' => '1012990k',
     'kw' => '♂迷失の世界♀',
-    'model' => 'H701',
+    'model' => 'SansungNote7BoomPhone',
     'pn' => '1',
     'q_type' => '2',
     'rn' => '35',
@@ -46,11 +37,13 @@ function _get_tbs($uid){
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
+  if(defined('DEBUG_ENABLED')) echo $x;
   $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -68,26 +61,17 @@ function _get_tbs($uid){
 function _verify_cookie($cookie){
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'from' => '1012990k',
     'kw' => '♂迷失の世界♀',
-    'model' => 'H701',
+    'model' => 'SansungNote7BoomPhone',
     'pn' => '1',
     'q_type' => '2',
     'rn' => '35',
@@ -104,14 +88,17 @@ function _verify_cookie($cookie){
     'timestamp' => time().rand(111,999),
     'with_group' => '1'
   );
+  $x='';
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
+  if(defined('DEBUG_ENABLED')) echo $x;
   $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -134,23 +121,14 @@ function _get_baidu_userinfo($uid){
   if(!$cookie) return array('error_code' => 4);
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'need_post_count' => '1',
     'pn' => '1',
     'rn' => '20',
@@ -167,16 +145,19 @@ function _get_baidu_userinfo($uid){
     'timestamp' => time().rand(111,999),
     'uid' => get_uid($BDUSS),
   );
+  $x='';
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
+  if(defined('DEBUG_ENABLED')) echo $x;
   $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
   $ch = curl_init('http://c.tieba.baidu.com/c/u/user/profile');
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -193,25 +174,16 @@ function _get_liked_tieba($cookie){
   $pn = 1;
   $kw_name = array();
   if(!$userid=get_uid($BDUSS)) return array(null, '取UID失败！');
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   $count = 0;
   do{
     $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'need_post_count' => '1',
     'page_no' => $pn,
     'page_size' => '50',
@@ -232,13 +204,15 @@ function _get_liked_tieba($cookie){
     foreach($pda as $k=>$v){
       $x.=$k.'='.$v;
     }
+    if(defined('DEBUG_ENABLED')) echo $x;
     $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
     $ch = curl_init('http://c.tieba.baidu.com/c/f/forum/like');
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+    curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -301,7 +275,7 @@ function _update_liked_tieba($uid, $ignore_error = false, $allow_deletion = true
     $my_tieba[strval($r['fid'])] = $r;
     //某些极端条件（度娘bug）下吧名可能重复，但fid唯一
   }
-  if(DEBUG_ENABLED) print_r($my_tieba);
+  if(defined('DEBUG_ENABLED')) print_r($my_tieba);
   foreach($liked_tieba as $tieba){
     if(isset($my_tieba[strval($tieba['fid'])])){
       unset($my_tieba[strval($tieba['fid'])]);
@@ -396,28 +370,20 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
     $BDUSS = trim($matches[1]);
     if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   }
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   $ch = curl_init('http://c.tieba.baidu.com/c/c/forum/sign');
-  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 7.4.5', 'client_user_token: '.random(6, true)));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 6.6.6', 'client_user_token: '.random(6, true)));
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, 1);
   $array = array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'fid' => $tieba['fid'],
     'from' => 'tieba',
     'kw' => $tieba['name'],
@@ -434,6 +400,81 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   );
   $sign_str = '';
   foreach($array as $k=>$v) $sign_str .= $k.'='.$v;
+  if(defined('DEBUG_ENABLED')) echo $sign_str;
+  $sign = strtoupper(md5($sign_str.'tiebaclient!!!'));
+  $array['sign'] = $sign;
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($array));
+  curl_setopt($ch, CURLOPT_REFERER, 'https://tieba.baidu.com/f?kw='.urlencode($tieba['name']));
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  $sign_json = curl_exec($ch);
+  curl_close($ch);
+  $res = @json_decode($sign_json, true);
+  if(!$res) return array(1, 'JSON 解析错误', 0);
+  if(isset($res['user_info'])){
+    $exp = $res['user_info']['sign_bonus_point'];
+    return array(2, "签到成功，经验值上升 {$exp}", $exp);
+  }else{
+    switch($res['error_code']){
+      case '340010':    // 已经签过
+      case '160002':
+      case '3':
+        return array(2, $res['error_msg'], 0);
+      case '1':      // 未登录
+        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
+      case '160004':    // 不支持
+        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+      case '160003':    // 零点 稍后再试
+      case '160008':    // 太快了
+        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+      case '340006':    // this tieba is banned!!!
+        return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
+      default:
+        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    }
+  }
+}
+
+function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
+//带stoken客户端签到
+  if(!$BDUSS){
+    $cookie = get_cookie($uid);
+    $matches=explode('=', $cookie);
+    $BDUSS = trim($matches[1]);
+    if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  }
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
+  $ch = curl_init('http://c.tieba.baidu.com/c/c/forum/sign');
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 8.7.8.9', 'client_user_token: '.random(6, true)));
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  $array = array(
+    'BDUSS' => $BDUSS,
+    '_client_id' => $clientid,
+    '_client_type' => '2',
+    '_client_version' => '8.7.8.9',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
+    'fid' => $tieba['fid'],
+    'from' => 'tieba',
+    'kw' => $tieba['name'],
+    'model' => 'SansungNote7BoomPhone',
+    'stErrorNums' => '1',
+    'stMethod' => '1',
+    'stMode' => '1',
+    'stSize' => random(5, true),
+    'stTime' => random(4, true),
+    'stTimesNum' => '1',
+    'stoken' => $stoken,
+    'tbs' => get_tbs($uid),
+    'timestamp' => time().rand(1000, 9999),
+  );
+  $sign_str = '';
+  foreach($array as $k=>$v) $sign_str .= $k.'='.$v;
+  if(defined('DEBUG_ENABLED')) echo $sign_str;
   $sign = strtoupper(md5($sign_str.'tiebaclient!!!'));
   $array['sign'] = $sign;
   curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($array));
@@ -511,7 +552,7 @@ function _pc_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', 0);
   if($res->no==0){
-    return array(2, "签到成功", 0); //pc签到不返回经验增量
+    return array(2, '签到成功', 0); //pc签到不返回经验增量
   }else{
     switch($res->no){
       case '1101':    // 已经签过
@@ -565,9 +606,9 @@ function _onekey_sign($uid, $BDUSS=null, $stoken=null){
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', null);
   if($res['no']==0){
-    return array(2, "签到成功", $res['data']['forum_list']);//返回已签到贴吧详细信息
+    return array(2, '签到成功', $res['data']['forum_list']);//返回已签到贴吧详细信息
   }elseif($res['no']==2280006){
-    return array(2, 0, $res['no'].':'.$res['error']);
+    return array(2, 0, $res['no'].':'.$res['error']);//已经使用一键签到
   }else{
     return array(-1, $res['no'].':'.$res['error'], null);
   }
@@ -598,26 +639,17 @@ function _wenku_sign($uid){
 
 
 function _get_uid($BDUSS){
-  $_imei=md5($BDUSS);
-  $_imei=str_replace("a", "3", $_imei);
-  $_imei=str_replace("b", "9", $_imei);
-  $_imei=str_replace("c", "8", $_imei);
-  $_imei=str_replace("d", "0", $_imei);
-  $_imei=str_replace("e", "2", $_imei);
-  $_imei=str_replace("f", "5", $_imei);
-  $__client_id='wappc_'.time().'985_211'; 
-  $_imei=substr($_imei,15,15);
-  $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
-    '_client_id' => $__client_id,
+    '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
-    '_phone_imei' => $_imei,
-    'cuid' => $_cuid,
+    '_client_version' => '6.6.6',
+    '_phone_imei' => $phoneimei,
+    'cuid' => $cuid,
     'from' => '1012990k',
     'kw' => '♂迷失の世界♀',
-    'model' => 'H701',
+    'model' => 'SansungNote7BoomPhone',
     'pn' => '1',
     'q_type' => '2',
     'rn' => '35',
@@ -638,12 +670,13 @@ function _get_uid($BDUSS){
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
+  if(defined('DEBUG_ENABLED')) echo $x;
   $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'https://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HTTPHEADER, $pda);
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5 Chrome FuckBaidu 2.3 Mozilla 6.66 MSIE 10.0 capable');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6 Chrome FuckBaidu 2.3 Mozilla 6.66 MSIE 10.0 capable');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
@@ -688,3 +721,17 @@ function _check_stoken($BDUSS, $stoken){
   return true;
 }
     
+function _device_id($BDUSS, $imeiOffset=0){
+  if($imeiOffset>17) $imeiOffset=0;
+  $_phone_imei=md5($BDUSS);
+  $_phone_imei=str_replace("a", "1", $_phone_imei);
+  $_phone_imei=str_replace("b", "2", $_phone_imei);
+  $_phone_imei=str_replace("c", "3", $_phone_imei);
+  $_phone_imei=str_replace("d", "4", $_phone_imei);
+  $_phone_imei=str_replace("e", "5", $_phone_imei);
+  $_phone_imei=str_replace("f", "6", $_phone_imei);
+  $clientid='wappc_'.time().'985_211'; 
+  $_phone_imei=substr($_phone_imei, $imeiOffset, 15);
+  $cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.$_phone_imei.'tsgirl'))).'|'.strrev($_phone_imei);
+  return array($clientid, $_phone_imei, $cuid);
+}

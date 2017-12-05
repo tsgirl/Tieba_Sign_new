@@ -9,9 +9,9 @@ class plugin_xxx_post extends Plugin{
     array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_se', 'order' => '105')),
     array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_sxbk', 'order' => '109')),
   );
-  var $version='0.3.3';
+  var $version='0.3.4';
   function checkCompatibility(){
-    if(version_compare(VERSION, '1.14.4.24', '<')) showmessage('签到助手版本过低，请升级');
+    if(version_compare(VERSION, '1.17.12.5', '<')) showmessage('签到助手版本过低，请升级');
   }
   function page_footer_js() {
     echo '<script src="plugins/xxx_post/main.js"></script>';
@@ -34,7 +34,7 @@ class plugin_xxx_post extends Plugin{
 
       CREATE TABLE IF NOT EXISTS `xxx_post_setting` (
         `uid` int(30) unsigned NOT NULL PRIMARY KEY,
-        `client_type` tinyint(1) NOT NULL DEFAULT '1',
+        `client_type` tinyint(1) NOT NULL DEFAULT '2',
         `frequency` tinyint(1) NOT NULL DEFAULT '2',
         `delay` tinyint(2) NOT NULL DEFAULT '1',
         `runtime` int(30) unsigned NOT NULL DEFAULT '0',
@@ -81,9 +81,10 @@ class plugin_xxx_post extends Plugin{
         $this->saveSetting ( 'sxbk', '0' );
         $this->saveSetting ( 'se', '21' );
         $this->saveSetting ( 'first_end','15');
-        case '0.3.1':
-        case '0.3.2':
-        return '0.3.3';
+      case '0.3.1':
+      case '0.3.2':
+      case '0.3.3':
+        return '0.3.4';
       default:
         throw new Exception("Unknown plugin version: {$from_version}");
     }
@@ -214,16 +215,7 @@ EOF;
         $tieba = $_POST ['xxx_post_add_tieba'];
         $cookie = get_cookie ( $uid );
         $matches=explode('=', $cookie);
-        $_imei=md5($BDUSS);
-        $_imei=str_replace("a", "3", $_imei);
-        $_imei=str_replace("b", "9", $_imei);
-        $_imei=str_replace("c", "8", $_imei);
-        $_imei=str_replace("d", "0", $_imei);
-        $_imei=str_replace("e", "2", $_imei);
-        $_imei=str_replace("f", "5", $_imei);
-        $__client_id='wappc_'.time().'985_211'; 
-        $_imei=substr($_imei,15,15);
-        $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+        list($__client_id, $_imei, $_cuid)=device_id($BDUSS, 2);
         $pda=Array(
           'BDUSS' => $BDUSS,
           '_client_id' => $__client_id,
@@ -233,7 +225,7 @@ EOF;
           'cuid' => $_cuid,
           'from' => 'an_leshangdian',
           'kw' => $tieba,
-          'model' => 'N9300',
+          'model' => 'GM-T1',
           'pn' => '1',
           'q_type' => '2',
           'rn' => '35',
@@ -292,16 +284,7 @@ EOF;
         $cookie = get_cookie ( $uid );
         $matches=explode('=', $cookie);
         $BDUSS = trim ( $matches [1] );
-        $_imei=md5($BDUSS);
-        $_imei=str_replace("a", "3", $_imei);
-        $_imei=str_replace("b", "9", $_imei);
-        $_imei=str_replace("c", "8", $_imei);
-        $_imei=str_replace("d", "0", $_imei);
-        $_imei=str_replace("e", "2", $_imei);
-        $_imei=str_replace("f", "5", $_imei);
-        $__client_id='wappc_'.time().'985_211'; 
-        $_imei=substr($_imei,15,15);
-        $_cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.'tsgirl'))).'|'.strrev($_imei);
+        list($__client_id, $_imei, $_cuid)=device_id($BDUSS, 2);
         $pda=Array(
           'BDUSS' => $BDUSS,
           '_client_id' => $__client_id,
@@ -311,7 +294,7 @@ EOF;
           'cuid' => $_cuid,
           'from' => 'an_leshangdian',
           'kz' => $tid,
-          'model' => 'N9300',
+          'model' => 'GM-T1',
           'pn' => '1',
           'q_type' => '2',
           'rn' => '2',
@@ -376,7 +359,7 @@ EOF;
         }
         list ( $status, $result ) = client_rppost ( $uid, $tiezi, $x_content);
         $status = $status == 2 ? '发帖成功' : '发帖失败';
-        showmessage ( "<p>测试帖子：[{$tiezi[name]}吧]{$tiezi[post_name]}，tid={$tiezi[tid]}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>" );
+        showmessage ( "<p>测试帖子：[{$tiezi['name']}吧]{$tiezi['post_name']}，tid={$tiezi['tid']}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>" );
         break;
       case 'post-log' :
         $date = date ( 'Ymd' );

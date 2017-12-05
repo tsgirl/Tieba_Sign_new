@@ -57,7 +57,7 @@ table.x_table thead tr{background-color:#dedede;}
 </style>
 
 <h2>客户端回帖</h2>
-<p class="small_gray">当前插件版本：0.3.3 | 更新日期：17-11-17 | Designed By <a href="http://tieba.baidu.com/home/main?un=%D0%C7%CF%D2%D1%A9&fr=index" target="_blank">@星弦雪</a> | Modified By <a href="//tsgirl.top">tsgirl</a></p>
+<p class="small_gray">当前插件版本：0.3.4 | 更新日期：17-12-05 | Designed By <a href="http://tieba.baidu.com/home/main?un=%D0%C7%CF%D2%D1%A9&fr=index" target="_blank">@星弦雪</a> | Modified By <a href="//tsgirl.top">tsgirl</a></p>
 <p class="small_gray_i"><?php echo '——'.get_random_content();?>
 <div>
 	<ul class="nav-tabs">
@@ -75,7 +75,8 @@ table.x_table thead tr{background-color:#dedede;}
 		<p>
 			客户端类型：
 		<select name="x_p_client_type" id="x_p_client_type" disabled>
-		  <option value="1">Android</option>
+		  <option value="2">Android</option>
+		  <option value="4">Windows 8</option>
 		</select>
 		</p>
 		<p>回帖频率：
