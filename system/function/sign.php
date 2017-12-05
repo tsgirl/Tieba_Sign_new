@@ -2,6 +2,7 @@
 if(!defined('IN_KKFRAME')) exit();
 function _get_tbs($uid){
   static $tbs = array();
+  if(isset($tbs[$uid])) return $tbs[$uid];
   $cookie = get_cookie($uid);
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);

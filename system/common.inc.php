@@ -7,10 +7,10 @@ define('TIMESTAMP', time());
 define('VERSION', '1.17.11.27');
 define('UI_VERSION', '1.0');
 
-define('DEBUG_ENABLED', isset($_GET['debug']));
+if(isset($_GET['debug'])) define('DEBUG_ENABLED', $_GET['debug']);
 if(defined('DEBUG_ENABLED')){
   error_reporting(E_ALL);
-  @ini_set('display_errors', DEBUG_ENABLED);
+  @ini_set('display_errors', 'on');
 }
 
 require_once SYSTEM_ROOT.'./class/kerror.php';
