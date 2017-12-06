@@ -103,15 +103,15 @@ EOF;
 }
 
 function get_random_tid($tieba,$BDUSS){
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS, 3);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '7.4.5',
+    '_client_version' => '6.6.6',
     '_phone_imei' => $phoneimei,
     'cuid' => $cuid,
-    'from' => 'an_leshangdian',
+    'from' => 'baidu_appstore',
     'kw' => $tieba,
     'model' => 'GM-T1',
     'pn' => '1',
@@ -134,21 +134,24 @@ function get_random_tid($tieba,$BDUSS){
   foreach($pda as $k=>$v){
     $x.=$k.'='.$v;
   }
-  $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+  $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
-  curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
-      'Content-Type: application/x-www-form-urlencoded'
-  ) );
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+   'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+   'Accept: application/json',
+   'Accept-Language: zh-CN,zh;q=0.9'
+  ));
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 7.4.5');
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); 
-  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
   $gd = curl_exec($ch);
   curl_close($ch);
   $gd=json_decode($gd);
@@ -185,7 +188,7 @@ function client_rppost($uid, $tieba, $content=null) {
       }
     }
   }
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS, 3);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS, 3);
   if (! $content) $content=get_random_content();
   $tid=$tieba['tid'];
   if (!$tieba['tid']){
@@ -223,11 +226,13 @@ function client_rppost($uid, $tieba, $content=null) {
         'tid='.$tid,
         'title='
       );
-      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata)."tiebaclient!!!"));
+      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata).'tiebaclient!!!'));
       $ch = curl_init ( 'http://c.tieba.baidu.com/c/c/post/add' );
-      curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
-          'Content-Type: application/x-www-form-urlencoded'
-      ) );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+       'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+       'Accept: application/json',
+       'Accept-Language: zh-CN,zh;q=0.9'
+      ));
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_COOKIE, $cookie);
       curl_setopt($ch, CURLOPT_POST, true);
@@ -253,7 +258,7 @@ function client_rppost($uid, $tieba, $content=null) {
     //placeholder
     default:
       if($setting['stoken']){
-        $clientversion='8.6.8.0';
+        $clientversion='9.0.8.0';
         $formdata = array(
           'BDUSS='.$BDUSS,
           '_client_id='.$clientid,
@@ -265,14 +270,19 @@ function client_rppost($uid, $tieba, $content=null) {
           'can_no_forum=0',
           'content='.trim($content),
           'cuid='.$cuid,
+          'entrance_type=0',
           'fid='.$fid_tsgirl,
           'from=an_leshangdian',
           'is_ad=0',
           'is_barrage=0',
           'is_feedback=0',
+          'is_location=2',
           'kw='.$kw_tsgirl,
+          'lat=38.'.random(6, true),
+          'lng=117.'.random(6, true),
           'model=GM-T1',
           'new_vcode=1',
+          'post_from=3',
           'reply_uid=null',
           'stErrorNums=1',
           'stMethod=1',
@@ -281,15 +291,17 @@ function client_rppost($uid, $tieba, $content=null) {
           'stTime='.rand(111,999),
           'stTimesNum=1',
           'stoken='.$setting['stoken'],
+          'takephoto_num=0',
           'tbs='.$tbs_tsgirl,
           'tid='.$tid,
           'timestamp='.time().rand(111,999),
           'v_fid=',
           'v_fname=',
-          'vcode_tag=12'
+          'vcode_tag=12',
+          'z_id='.$zid
         );
       }else{
-        $clientversion='7.4.5';
+        $clientversion='7.0.0.0';
         $formdata = array(
           'BDUSS='.$BDUSS,
           '_client_id='.$clientid,
@@ -300,30 +312,31 @@ function client_rppost($uid, $tieba, $content=null) {
           'content='.trim($content),
           'cuid='.$cuid,
           'fid='.$fid_tsgirl,
-          'from=an_leshangdian',
+          'from=mini_875b',
           'is_ad=0',
-          'is_location=2',
           'kw='.$kw_tsgirl,
           'model=GM-T1',
           'new_vcode=1',
-          'reply_uid=null',
           'stErrorNums=1',
           'stMethod=1',
           'stMode=1',
           'stSize='.rand(111,9999),
           'stTime='.rand(111,999),
           'stTimesNum=1',
+          'subapp_type=mini',
           'tbs='.$tbs_tsgirl,
           'tid='.$tid,
           'timestamp='.time().rand(111,999),
-          'vcode_tag=12'
+          'vcode_tag=11'
         );
       }
-      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata)."tiebaclient!!!"));
+      $data=implode("&", $formdata)."&sign=".strtoupper(md5(implode("", $formdata).'tiebaclient!!!'));
       $ch = curl_init ( 'http://c.tieba.baidu.com/c/c/post/add' );
-      curl_setopt ( $ch, CURLOPT_HTTPHEADER, array (
-          'Content-Type: application/x-www-form-urlencoded'
-      ) );
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+       'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+       'Accept: application/json',
+       'Accept-Language: zh-CN,zh;q=0.9'
+      ));
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_COOKIE, $cookie);
       curl_setopt($ch, CURLOPT_POST, true);

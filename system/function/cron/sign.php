@@ -62,12 +62,12 @@ if($nowtime - $today < 1800){
         if(defined('DEBUG_ENABLED')) echo '<br />result:'.$status.'->'.$result;
         if($status==2&&$result){
           for($x=0; $x<sizeof($exp); $x++){
-            DB::query("UPDATE sign_log SET status='2', exp='{$exp[$x]['loyalty_score']['normal_score']}' WHERE fid='{$exp[$x]['forum_id']}' AND date='{$date}'");
+            DB::query("UPDATE sign_log SET status='2', exp='{$exp[$x]['loyalty_score']['normal_score']}' WHERE fid='{$exp[$x]['forum_id']}' AND date='{$date}' AND uid='{$uid}'");
             $count--;
           }
           sleep(1);
           continue;
-        }elseif(!$result){
+        }elseif(!$result){//onekey sign done before
           DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
           $time = 2;
         }else{
@@ -78,7 +78,7 @@ if($nowtime - $today < 1800){
             DB::query("UPDATE sign_log SET status='1', retry=retry+51 WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
           }
         }
-      $time = 1;
+        $time = 1;
       }else{//贴吧被封禁（关闭），未开启暴力签到
         DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
         $time = 0;

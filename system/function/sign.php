@@ -6,7 +6,7 @@ function _get_tbs($uid){
   $cookie = get_cookie($uid);
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
@@ -38,16 +38,21 @@ function _get_tbs($uid){
     $x.=$k.'='.$v;
   }
   if(defined('DEBUG_ENABLED')) echo $x;
-  $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+  $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+   'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+   'Accept: application/json',
+   'Accept-Language: zh-CN,zh;q=0.9'
+  ));
   curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
   curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -61,7 +66,7 @@ function _get_tbs($uid){
 function _verify_cookie($cookie){
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
@@ -93,16 +98,21 @@ function _verify_cookie($cookie){
     $x.=$k.'='.$v;
   }
   if(defined('DEBUG_ENABLED')) echo $x;
-  $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+  $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
   curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+   'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+   'Accept: application/json',
+   'Accept-Language: zh-CN,zh;q=0.9'
+  ));
   curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
   curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -121,7 +131,7 @@ function _get_baidu_userinfo($uid){
   if(!$cookie) return array('error_code' => 4);
   $matches=explode('=', $cookie);
   $BDUSS = trim($matches[1]);
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
@@ -150,18 +160,23 @@ function _get_baidu_userinfo($uid){
     $x.=$k.'='.$v;
   }
   if(defined('DEBUG_ENABLED')) echo $x;
-  $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+  $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
   $ch = curl_init('http://c.tieba.baidu.com/c/u/user/profile');
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+   'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+   'Accept: application/json',
+   'Accept-Language: zh-CN,zh;q=0.9'
+  ));
   curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
   curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
-  curl_setopt($ch, CURLOPT_TIMEOUT, 30);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 30);
   $tbs_json = curl_exec($ch);
   curl_close($ch);
   //$tbs_json = mb_convert_encoding($tbs_json, "utf8", "gbk");
@@ -174,7 +189,7 @@ function _get_liked_tieba($cookie){
   $pn = 1;
   $kw_name = array();
   if(!$userid=get_uid($BDUSS)) return array(null, '取UID失败！');
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $count = 0;
   do{
     $pda=Array(
@@ -205,18 +220,23 @@ function _get_liked_tieba($cookie){
       $x.=$k.'='.$v;
     }
     if(defined('DEBUG_ENABLED')) echo $x;
-    $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+    $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
     $ch = curl_init('http://c.tieba.baidu.com/c/f/forum/like');
     curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+     'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+     'Accept: application/json',
+     'Accept-Language: zh-CN,zh;q=0.9'
+    ));
     curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
     curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     $tbs_json = curl_exec($ch);
     curl_close($ch);
     $result = json_decode($tbs_json, true);
@@ -347,18 +367,20 @@ function _client_sign_old($uid, $tieba, $BDUSS=null, $stoken=null){
   $res= json_decode(curl_exec($ch));
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', 0);
-  if($res->no==0){
-    $exp = $res->error;
-    return array(2, "签到成功，经验值上升 {$exp}", $exp);
-  }else{
-    switch($res->no){
-      case '1101':    // 已经签过
-        return array(2, $res->no.':'.$res->error, 0);
-      case '1010':    // 贴吧被封
-        return array(2, $res->no.':'.$res->error, 340001);
-      default:
-        return array(-1, $res->no.':'.$res->error.'(/mo/q/sign?tbs='.$tbs_tsgirl.'&kw='.$tieba['name'].'&is_like=1&fid='.$tieba['fid'].')'.$cookie_tsgirl , 0);
-    }
+  switch($res->no){
+    case '0':
+      $exp = $res->error;
+      return array(2, "签到成功，经验值上升 {$exp}", $exp);
+    case '1102': //sign too fast
+      return array(1, $res->no.':'.$res->error, 0);
+    case '1101':    // 已经签过
+    case '11000': //user banned
+      return array(2, $res->no.':'.$res->error, 0);
+    case '1010':    // 贴吧被封
+      return array(2, $res->no.':'.$res->error, 340001);
+    default:
+      return array(-1, $res->no.':'.$res->error, 0);
+    
   }
 }
 
@@ -370,10 +392,10 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
     $BDUSS = trim($matches[1]);
     if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   }
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   $ch = curl_init('http://c.tieba.baidu.com/c/c/forum/sign');
-  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 6.6.6', 'client_user_token: '.random(6, true)));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 6.6.6'));
   curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, 1);
@@ -412,27 +434,28 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   curl_close($ch);
   $res = @json_decode($sign_json, true);
   if(!$res) return array(1, 'JSON 解析错误', 0);
-  if(isset($res['user_info'])){
-    $exp = $res['user_info']['sign_bonus_point'];
-    return array(2, "签到成功，经验值上升 {$exp}", $exp);
-  }else{
-    switch($res['error_code']){
-      case '340010':    // 已经签过
-      case '160002':
-      case '3':
-        return array(2, $res['error_msg'], 0);
-      case '1':      // 未登录
-        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
-      case '160004':    // 不支持
-        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-      case '160003':    // 零点 稍后再试
-      case '160008':    // 太快了
-        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-      case '340006':    // this tieba is banned!!!
-        return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
-      default:
-        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    }
+  switch($res['error_code']){
+    case '0':
+        $exp = $res['user_info']['sign_bonus_point'];
+      return array(2, "签到成功，经验值上升 {$exp}", $exp);
+    case '340010':    // 已经签过
+    case '160002':
+    case '3':
+    case '3250004':    // user banned by bawu!!!
+    case '3250002':    // user banned by system!!!
+      return array(2, $res['error_msg'], 0);
+    case '1':      // 未登录
+      return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
+    case '160004':    // 不支持
+      return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    case '160003':    // 零点 稍后再试
+    case '160008':    // 太快了
+      return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    case '340006':    // this tieba is banned!!!
+      return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
+    default:
+      return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    
   }
 }
 
@@ -444,10 +467,13 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
     $BDUSS = trim($matches[1]);
     if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   }
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS, 2);
   if(!$BDUSS) return array(-1, '找不到 BDUSS Cookie', 0);
   $ch = curl_init('http://c.tieba.baidu.com/c/c/forum/sign');
-  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'User-Agent: bdtb for Android 8.7.8.9', 'client_user_token: '.random(6, true)));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/x-www-form-urlencoded', 
+    'User-Agent: bdtb for Android 9.0.8.0'
+  ));
   curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, 1);
@@ -455,11 +481,11 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
     '_client_type' => '2',
-    '_client_version' => '8.7.8.9',
+    '_client_version' => '9.0.8.0',
     '_phone_imei' => $phoneimei,
     'cuid' => $cuid,
     'fid' => $tieba['fid'],
-    'from' => 'tieba',
+    'from' => 'an_leshangdian',
     'kw' => $tieba['name'],
     'model' => 'SansungNote7BoomPhone',
     'stErrorNums' => '1',
@@ -471,6 +497,7 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
     'stoken' => $stoken,
     'tbs' => get_tbs($uid),
     'timestamp' => time().rand(1000, 9999),
+    'z_id' => $zid
   );
   $sign_str = '';
   foreach($array as $k=>$v) $sign_str .= $k.'='.$v;
@@ -486,27 +513,28 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
   curl_close($ch);
   $res = @json_decode($sign_json, true);
   if(!$res) return array(1, 'JSON 解析错误', 0);
-  if(isset($res['user_info'])){
-    $exp = $res['user_info']['sign_bonus_point'];
-    return array(2, "签到成功，经验值上升 {$exp}", $exp);
-  }else{
-    switch($res['error_code']){
-      case '340010':    // 已经签过
-      case '160002':
-      case '3':
-        return array(2, $res['error_msg'], 0);
-      case '1':      // 未登录
-        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
-      case '160004':    // 不支持
-        return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-      case '160003':    // 零点 稍后再试
-      case '160008':    // 太快了
-        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-      case '340006':    // this tieba is banned!!!
-        return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
-      default:
-        return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    }
+  switch($res['error_code']){
+    case '0':
+        $exp = $res['user_info']['sign_bonus_point'];
+      return array(2, "签到成功，经验值上升 {$exp}", $exp);
+    case '340010':    // 已经签过
+    case '160002':
+    case '3':
+    case '3250004':    // user banned by bawu!!!
+    case '3250002':    // user banned by system!!!
+      return array(2, $res['error_msg'], 0);
+    case '1':      // 未登录
+      return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
+    case '160004':    // 不支持
+      return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    case '160003':    // 零点 稍后再试
+    case '160008':    // 太快了
+      return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    case '340006':    // this tieba is banned!!!
+      return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
+    default:
+      return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
+    
   }
 }
 
@@ -551,17 +579,17 @@ function _pc_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   $res= json_decode(curl_exec($ch));
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', 0);
-  if($res->no==0){
-    return array(2, '签到成功', 0); //pc签到不返回经验增量
-  }else{
-    switch($res->no){
-      case '1101':    // 已经签过
-        return array(2, $res->no.':'.$res->error, 0);
-      case '1010':    // 贴吧被封
-        return array(2, $res->no.':'.$res->error, 340001);
-      default:
-        return array(-1, $res->no.':'.$res->error, 0);
-    }
+  switch($res->no){
+    case '0':
+      return array(2, '签到成功', 0); //pc签到不返回经验增量
+    case '1101':    // 已经签过
+      return array(2, $res->no.':'.$res->error, 0);
+    case '1010':    // 贴吧被封
+    case '2280002': //user banned
+      return array(2, $res->no.':'.$res->error, 340001);
+    default:
+      return array(-1, $res->no.':'.$res->error, 0);
+    
   }
 }
 
@@ -639,7 +667,7 @@ function _wenku_sign($uid){
 
 
 function _get_uid($BDUSS){
-  list($clientid, $phoneimei, $cuid)=device_id($BDUSS);
+  list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
   $pda=Array(
     'BDUSS' => $BDUSS,
     '_client_id' => $clientid,
@@ -671,15 +699,15 @@ function _get_uid($BDUSS){
     $x.=$k.'='.$v;
   }
   if(defined('DEBUG_ENABLED')) echo $x;
-  $pda['sign'] = strtoupper(md5($x."tiebaclient!!!"));
+  $pda['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'https://c.tieba.baidu.com/c/f/frs/page');
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $pda);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, http_build_query($pda));
   curl_setopt($ch, CURLOPT_HEADER, 0);
   curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6 Chrome FuckBaidu 2.3 Mozilla 6.66 MSIE 10.0 capable');
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
   curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -722,16 +750,18 @@ function _check_stoken($BDUSS, $stoken){
 }
     
 function _device_id($BDUSS, $imeiOffset=0){
-  if($imeiOffset>17) $imeiOffset=0;
+  if($imeiOffset>16) $imeiOffset=1;
+  for($x=0; $x<=$imeiOffset; $x++) $BDUSS.='tsgirl';
   $_phone_imei=md5($BDUSS);
-  $_phone_imei=str_replace("a", "1", $_phone_imei);
-  $_phone_imei=str_replace("b", "2", $_phone_imei);
-  $_phone_imei=str_replace("c", "3", $_phone_imei);
-  $_phone_imei=str_replace("d", "4", $_phone_imei);
-  $_phone_imei=str_replace("e", "5", $_phone_imei);
-  $_phone_imei=str_replace("f", "6", $_phone_imei);
-  $clientid='wappc_'.time().'985_211'; 
+  $_phone_imei=str_replace('a', '1', $_phone_imei);
+  $_phone_imei=str_replace('b', '2', $_phone_imei);
+  $_phone_imei=str_replace('c', '3', $_phone_imei);
+  $_phone_imei=str_replace('d', '4', $_phone_imei);
+  $_phone_imei=str_replace('e', '5', $_phone_imei);
+  $_phone_imei=str_replace('f', '6', $_phone_imei);
+  $_client_id='wappc_'.(time()-$imeiOffset).rand(111,999).'_'.rand(111,999); 
   $_phone_imei=substr($_phone_imei, $imeiOffset, 15);
   $cuid=strtoupper(strrev(md5('tsgirl'.$BDUSS.$_phone_imei.'tsgirl'))).'|'.strrev($_phone_imei);
-  return array($clientid, $_phone_imei, $cuid);
+  $z_id=strtoupper(md5($_phone_imei.substr(md5($BDUSS), $imeiOffset, 16).$_phone_imei)).'|'.strrev($_phone_imei);
+  return array($_client_id, $_phone_imei, $cuid, $z_id);
 }

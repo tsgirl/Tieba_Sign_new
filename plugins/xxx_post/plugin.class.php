@@ -215,15 +215,17 @@ EOF;
         $tieba = $_POST ['xxx_post_add_tieba'];
         $cookie = get_cookie ( $uid );
         $matches=explode('=', $cookie);
-        list($__client_id, $_imei, $_cuid)=device_id($BDUSS, 2);
+        $BDUSS=$matches[1];
+        unset($matches);
+        list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS);
         $pda=Array(
           'BDUSS' => $BDUSS,
-          '_client_id' => $__client_id,
+          '_client_id' => $clientid,
           '_client_type' => '2',
           '_client_version' => '6.6.6',
-          '_phone_imei' => $_imei,
-          'cuid' => $_cuid,
-          'from' => 'an_leshangdian',
+          '_phone_imei' => $phoneimei,
+          'cuid' => $cuid,
+          'from' => 'baidu_appstore',
           'kw' => $tieba,
           'model' => 'GM-T1',
           'pn' => '1',
@@ -235,11 +237,11 @@ EOF;
           'stErrorNums' => '0',
           'stMethod' => '1',
           'stMode' => '1',
-          'stSize' => rand(1111,9999),
-          'stTime' => rand(11,999),
+          'stSize' => rand(1000,9999),
+          'stTime' => rand(100,999),
           'stTimesNum' => '0',
           'st_type' => 'tb_forumlist',
-          'timestamp' => time().rand(111,999),
+          'timestamp' => time().rand(100,999),
           'with_group' => '1'
         );
         $x='';
@@ -250,20 +252,26 @@ EOF;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/frs/page');
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+          'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+          'Accept: application/json',
+          'Accept-Language: zh-CN,zh;q=0.9'
+        ));
+        curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         $gd = curl_exec($ch);
         curl_close($ch);
         $gd = json_decode($gd);                        
-        $forumname = $gd->forum->name;
-        $fid = $gd->forum->id;
         if ($gd->error_code != 0) {
           $data ['msg'] = '添加失败('.$gd->error_code.":".$gd->error_msg.')';
           $data ['msgx'] = 0;
           break;
         }
+        $forumname = $gd->forum->name;
+        $fid = $gd->forum->id;
         //preg_match ( '/fname="(.+?)"/', $contents, $fnames );
         $unicode_name = urlencode($forumname);
         //$fname = $fnames [1];
@@ -284,7 +292,7 @@ EOF;
         $cookie = get_cookie ( $uid );
         $matches=explode('=', $cookie);
         $BDUSS = trim ( $matches [1] );
-        list($__client_id, $_imei, $_cuid)=device_id($BDUSS, 2);
+        list($__client_id, $_imei, $_cuid, $zid)=device_id($BDUSS);
         $pda=Array(
           'BDUSS' => $BDUSS,
           '_client_id' => $__client_id,
@@ -292,7 +300,7 @@ EOF;
           '_client_version' => '6.6.6',
           '_phone_imei' => $_imei,
           'cuid' => $_cuid,
-          'from' => 'an_leshangdian',
+          'from' => 'baidu_appstore',
           'kz' => $tid,
           'model' => 'GM-T1',
           'pn' => '1',
@@ -318,7 +326,13 @@ EOF;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'http://c.tieba.baidu.com/c/f/pb/page');
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $pda);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+          'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+          'Accept: application/json',
+          'Accept-Language: zh-CN,zh;q=0.9'
+        ));
+        curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android 6.6.6');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($pda));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
