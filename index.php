@@ -39,11 +39,22 @@ if(!$uid){
       if($setting['stoken']){  
         $setting['stoken']=base64_decode($setting['stoken']);
         $stokenhash=md5($setting['cookie'].$setting['stoken']);
-        if($setting['checked']!=$stokenhash){
-          if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
-            DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-          }else{
-            $setting['stoken']=null;
+        $stokenhashInvaild=$stokenhash.'#invaild';
+        if($setting['checked']==$stokenhashInvaild){
+          if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' has an invaild stoken!!!';
+          $setting['stoken']=null;
+        }else{
+          if($setting['checked']!=$stokenhash){
+            if(defined('DEBUG_ENABLED')) echo '<br />checking stoken of uid '.$uid.' ...';
+            if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
+              if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is vaild!!!';
+              DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+            }else{
+              if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is invaild!!!';
+              $setting['stoken']=null;
+              $stokenhash.='#invaild';
+              DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+            }
           }
         }
       }
@@ -55,13 +66,6 @@ if(!$uid){
       if($exp == 340001){
         if($setting['force_sign'] == 1){
           list($status, $result, $exp) = onekey_sign($uid, $setting['cookie'], $setting['stoken']);
-          if($status==2){
-            if($result){
-              $result=json_encode($exp);
-            }else{
-              $result=$exp;
-            }
-          }
         }
       }
       $status = $status==2 ? '签到成功' : '签到失败';
@@ -83,7 +87,12 @@ if(!$uid){
       }
       unset($matches);
       $stokenhash=md5($setting['cookie'].$setting['stoken']);
-      if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])) DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
+        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      }else{
+        $stokenhash.='#invaild';
+        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      }
       showmessage('<p>测试结果：'.($vaildity?'stoken有效！':'stoken无效！').'</p><p>BDUSS='.$setting['cookie'].'</p><p>STOKEN='.$setting['stoken'].'</p>', './#setting', 1);
       break;
     case 'clear_cookie':

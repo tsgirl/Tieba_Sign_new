@@ -368,15 +368,15 @@ function _client_sign_old($uid, $tieba, $BDUSS=null, $stoken=null){
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', 0);
   switch($res->no){
-    case '0':
+    case 0:
       $exp = $res->error;
       return array(2, "签到成功，经验值上升 {$exp}", $exp);
-    case '1102': //sign too fast
+    case 1102: //sign too fast
       return array(1, $res->no.':'.$res->error, 0);
-    case '1101':    // 已经签过
-    case '11000': //user banned
+    case 1101:    // 已经签过
+    case 11000: //user banned
       return array(2, $res->no.':'.$res->error, 0);
-    case '1010':    // 贴吧被封
+    case 1010:    // 贴吧被封
       return array(2, $res->no.':'.$res->error, 340001);
     default:
       return array(-1, $res->no.':'.$res->error, 0);
@@ -435,23 +435,23 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   $res = @json_decode($sign_json, true);
   if(!$res) return array(1, 'JSON 解析错误', 0);
   switch($res['error_code']){
-    case '0':
-        $exp = $res['user_info']['sign_bonus_point'];
+    case 0:
+      $exp = $res['user_info']['sign_bonus_point'];
       return array(2, "签到成功，经验值上升 {$exp}", $exp);
-    case '340010':    // 已经签过
-    case '160002':
-    case '3':
-    case '3250004':    // user banned by bawu!!!
-    case '3250002':    // user banned by system!!!
+    case 340010:    // 已经签过
+    case 160002:
+    case 3:
+    case 3250004:    // user banned by bawu!!!
+    case 3250002:    // user banned by system!!!
       return array(2, $res['error_msg'], 0);
-    case '1':      // 未登录
+    case 1:      // 未登录
       return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
-    case '160004':    // 不支持
+    case 160004:    // 不支持
       return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    case '160003':    // 零点 稍后再试
-    case '160008':    // 太快了
+    case 160003:    // 零点 稍后再试
+    case 160008:    // 太快了
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    case '340006':    // this tieba is banned!!!
+    case 340006:    // this tieba is banned!!!
       return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
     default:
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
@@ -514,23 +514,23 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
   $res = @json_decode($sign_json, true);
   if(!$res) return array(1, 'JSON 解析错误', 0);
   switch($res['error_code']){
-    case '0':
-        $exp = $res['user_info']['sign_bonus_point'];
+    case 0:
+      $exp = $res['user_info']['sign_bonus_point'];
       return array(2, "签到成功，经验值上升 {$exp}", $exp);
-    case '340010':    // 已经签过
-    case '160002':
-    case '3':
-    case '3250004':    // user banned by bawu!!!
-    case '3250002':    // user banned by system!!!
+    case 340010:    // 已经签过
+    case 160002:
+    case 3:
+    case 3250004:    // user banned by bawu!!!
+    case 3250002:    // user banned by system!!!
       return array(2, $res['error_msg'], 0);
-    case '1':      // 未登录
+    case 1:      // 未登录
       return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']} （Cookie 过期或不正确）", 0);
-    case '160004':    // 不支持
+    case 160004:    // 不支持
       return array(-1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    case '160003':    // 零点 稍后再试
-    case '160008':    // 太快了
+    case 160003:    // 零点 稍后再试
+    case 160008:    // 太快了
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
-    case '340006':    // this tieba is banned!!!
+    case 340006:    // this tieba is banned!!!
       return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
     default:
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
@@ -580,12 +580,12 @@ function _pc_sign($uid, $tieba, $BDUSS=null, $stoken=null){
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', 0);
   switch($res->no){
-    case '0':
+    case 0:
       return array(2, '签到成功', 0); //pc签到不返回经验增量
-    case '1101':    // 已经签过
+    case 2280002: //user banned
+    case 1101:    // 已经签过
       return array(2, $res->no.':'.$res->error, 0);
-    case '1010':    // 贴吧被封
-    case '2280002': //user banned
+    case 1010:    // 贴吧被封
       return array(2, $res->no.':'.$res->error, 340001);
     default:
       return array(-1, $res->no.':'.$res->error, 0);
@@ -633,12 +633,14 @@ function _onekey_sign($uid, $BDUSS=null, $stoken=null){
   $res= json_decode(curl_exec($ch), true);
   curl_close($ch);
   if(!$res) return array(1, 'JSON 解析错误', null);
-  if($res['no']==0){
-    return array(2, '签到成功', $res['data']['forum_list']);//返回已签到贴吧详细信息
-  }elseif($res['no']==2280006){
-    return array(2, 0, $res['no'].':'.$res['error']);//已经使用一键签到
-  }else{
-    return array(-1, $res['no'].':'.$res['error'], null);
+  switch($res['no']){
+    case 0:
+      return array(2, '一键签到成功', $res['data']['forum_list']);//返回已签到贴吧详细信息
+    case 2280006://已经使用一键签到
+    case 2500113://没有可以签到的贴吧
+      return array(2, $res['no'].':'.$res['error'], null);
+    default:
+      return array(-1, $res['no'].':'.$res['error'], null);
   }
 }
 

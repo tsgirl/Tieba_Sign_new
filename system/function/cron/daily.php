@@ -10,5 +10,5 @@ $delete_date = date('Ymd', TIMESTAMP - 86400*30);
 DB::query("DELETE FROM sign_log WHERE date<'{$delete_date}'");
 saveSetting('extsign_uid', 0);
 saveSetting('autoupdate_uid', 0);
-Updater::check();
-cloud::check_remote_disabled();
+//Updater::check();
+//cloud::check_remote_disabled();

@@ -186,7 +186,7 @@ function get_cookie($uid){
 }
 function save_cookie($uid, $cookie){
 	$cookie = base64_encode($cookie);
-	CACHE::clean('setting');
+	CACHE::clear();
 	DB::query("UPDATE member_setting SET cookie='{$cookie}' WHERE uid='{$uid}'");
 }
 function get_username($uid){
@@ -217,7 +217,7 @@ function saveSetting($k, $v){
 	$v = addslashes($v);
 	DB::query("REPLACE INTO setting SET v='{$v}', k='{$k}'");
 	if($cache_cleaned) return;
-	CACHE::clean('setting');
+	CACHE::clear();
 	$cache_cleaned = true;
 }
 function runquery($sql){

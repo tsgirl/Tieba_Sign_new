@@ -16,7 +16,8 @@ if($nowtime - $today < 1800){
   while($endtime > time()){
     if($count <= 0) break;
     $offset = getSetting('random_sign') ? rand(1, $count) - 1 : 0;
-    $res = DB::fetch_first("SELECT tid, status FROM `sign_log` WHERE status IN (0, 1) AND date='{$date}' ORDER BY uid LIMIT {$offset},1");
+    $res = DB::fetch_first("SELECT tid, status, retry FROM `sign_log` WHERE status IN (0, 1) AND date='{$date}' ORDER BY uid LIMIT {$offset},1");
+    $retry = $res['retry']+51;
     $tid = $res['tid'];
     if(!$tid) break;
     if($res['status'] == 2 || $res['status'] == -2) continue;
@@ -32,18 +33,29 @@ if($nowtime - $today < 1800){
     if($setting['stoken']){  
       $setting['stoken']=base64_decode($setting['stoken']);
       $stokenhash=md5($setting['cookie'].$setting['stoken']);
-      if($setting['checked']!=$stokenhash){
-        if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
-          DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-        }else{
-          $setting['stoken']=null;
+      $stokenhashInvaild=$stokenhash.'#invaild';
+      if($setting['checked']==$stokenhashInvaild){
+        if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' has an invaild stoken!!!';
+        $setting['stoken']=null;
+      }else{
+        if($setting['checked']!=$stokenhash){
+          if(defined('DEBUG_ENABLED')) echo '<br />checking stoken of uid '.$uid.' ...';
+          if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
+            if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is vaild!!!';
+            DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+          }else{
+            if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is invaild!!!';
+            $setting['stoken']=null;
+            $stokenhash.='#invaild';
+            DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+          }
         }
       }
     }
     unset($matches);
     if($setting['cookie']) {
       if(defined('DEBUG_ENABLED')) echo '<br />Signing '.$tieba['name'].' for uid '.$uid.' using method '.$setting['sign_method'].'...';
-      if(defined('DEBUG_ENABLED')&&$setting['stoken'])echo '(user has stoken '.$setting['stoken'].')';
+      if(defined('DEBUG_ENABLED')&&$setting['stoken']) echo '(user has stoken '.$setting['stoken'].')';
       switch ($setting['sign_method']){
         case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
         case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
@@ -55,50 +67,52 @@ if($nowtime - $today < 1800){
       $count--;
       continue;
     }
-    if($exp == 340001){//tieba banned
-      if($setting['force_sign'] == 1){
-        if(defined('DEBUG_ENABLED')) echo '<br />onekey sign for uid'.$uid.'...';
-        list($status, $result, $exp) = onekey_sign($uid, $setting['cookie'], $setting['stoken']);
-        if(defined('DEBUG_ENABLED')) echo '<br />result:'.$status.'->'.$result;
-        if($status==2&&$result){
-          for($x=0; $x<sizeof($exp); $x++){
-            DB::query("UPDATE sign_log SET status='2', exp='{$exp[$x]['loyalty_score']['normal_score']}' WHERE fid='{$exp[$x]['forum_id']}' AND date='{$date}' AND uid='{$uid}'");
-            $count--;
-          }
-          sleep(1);
-          continue;
-        }elseif(!$result){//onekey sign done before
-          DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
-          $time = 2;
-        }else{
-          $retry = DB::result_first("SELECT retry FROM sign_log WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
-          if($retry >= 100){
-            DB::query("UPDATE sign_log SET status='-1' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
-          }else{
-            DB::query("UPDATE sign_log SET status='1', retry=retry+51 WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
-          }
-        }
-        $time = 1;
-      }else{//贴吧被封禁（关闭），未开启暴力签到
-        DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
-        $time = 0;
-      }
-    }elseif($status == 2){
+    if($status == 2){//sign return success (real success||tieba banned can't sign)
       if($exp){
-        DB::query("UPDATE sign_log SET status='2', exp='{$exp}' WHERE tid='{$tieba['tid']}' AND date='{$date}'");
-        $time = 2;
+        if($exp == 340001){//tieba banned
+          if($setting['force_sign'] == 1){//do onekey sign
+            if(defined('DEBUG_ENABLED')) echo '<br />onekey sign for uid'.$uid.'...';
+            list($status, $result, $exp) = onekey_sign($uid, $setting['cookie'], $setting['stoken']);
+            if(defined('DEBUG_ENABLED')) echo '<br />result:'.$status.'->'.$result;
+            if($status==2){//onekey success
+              if($exp){//returns signed tieba
+                for($x=0; $x<sizeof($exp); $x++){
+                  DB::query("UPDATE sign_log SET status='2', exp='{$exp[$x]['loyalty_score']['normal_score']}' WHERE fid='{$exp[$x]['forum_id']}' AND date='{$date}' AND uid='{$uid}'");
+                  $count--;
+                }
+                sleep(1);
+                continue;
+              }else{//onekey sign done before
+                DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
+                $time = 2;
+              }
+            }else{//onekey failed
+              if($retry >= 100){
+                DB::query("UPDATE sign_log SET status='-1' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
+              }else{
+                DB::query("UPDATE sign_log SET status='1', retry={$retry} WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
+              }
+            }
+            $time = 1;
+          }else{//贴吧被封禁（关闭），未开启暴力签到
+            DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
+            $time = 2;
+          }
+        }else{
+          DB::query("UPDATE sign_log SET status='2', exp='{$exp}' WHERE tid='{$tieba['tid']}' AND date='{$date}'");
+          $time = 2;
+        }
       }else{
         DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
         $time = 2;
       }
     }else{
-      $retry = DB::result_first("SELECT retry FROM sign_log WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
       if($retry >= 100){
         DB::query("UPDATE sign_log SET status='-1' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
       }else{
-        DB::query("UPDATE sign_log SET status='1', retry=retry+101 WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
+        DB::query("UPDATE sign_log SET status='1', retry={$retry} WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
       }
-      $time = 1;
+      $time = 2;
     }
     if($time){
       sleep($time);
