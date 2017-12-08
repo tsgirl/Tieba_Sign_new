@@ -36,28 +36,7 @@ if(!$uid){
         break;
       }
       unset($matches);
-      if($setting['stoken']){  
-        $setting['stoken']=base64_decode($setting['stoken']);
-        $stokenhash=md5($setting['cookie'].$setting['stoken']);
-        $stokenhashInvaild=$stokenhash.'#invaild';
-        if($setting['checked']==$stokenhashInvaild){
-          if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' has an invaild stoken!!!';
-          $setting['stoken']=null;
-        }else{
-          if($setting['checked']!=$stokenhash){
-            if(defined('DEBUG_ENABLED')) echo '<br />checking stoken of uid '.$uid.' ...';
-            if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
-              if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is vaild!!!';
-              DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-            }else{
-              if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is invaild!!!';
-              $setting['stoken']=null;
-              $stokenhash.='#invaild';
-              DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-            }
-          }
-        }
-      }
+      if($setting['stoken']) $setting['stoken'] = get_verified_stoken_from_uid($uid);
       switch ($setting['sign_method']){
         case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
         case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
@@ -69,31 +48,11 @@ if(!$uid){
         }
       }
       $status = $status==2 ? '签到成功' : '签到失败';
-      showmessage("<p>测试贴吧：{$tieba['name']}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>".($setting['stoken']?'':'<p><b>警告：stoken未设置或无效。这可能导致部分功能出现异常并增加贴吧账号被封禁的可能性</b></p>'), './#setting', 1);
+      showmessage("<p>测试贴吧：{$tieba['name']}</p><p>测试结果：{$status}</p><p>详细信息：{$result}</p>", './#setting', 1);
       break;
     case 'check_stoken':
-      $setting = get_setting($uid);
-      if(!$setting['stoken']) showmessage('未设置stoken！', './#setting', 1);
-      $setting['stoken']=base64_decode($setting['stoken']);
-      if(!$setting['cookie']){
-        showmessage('找不到 BDUSS Cookie', './#setting', 1);
-        break;
-      }
-      $matches=explode('=', base64_decode($setting['cookie']));
-      $setting['cookie'] = trim($matches[1]);
-      if(!$setting['cookie']){
-        showmessage('无法解析BDUSS！', './#setting', 1);
-        break;
-      }
-      unset($matches);
-      $stokenhash=md5($setting['cookie'].$setting['stoken']);
-      if($vaildity=check_stoken($setting['cookie'], $setting['stoken'])){
-        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-      }else{
-        $stokenhash.='#invaild';
-        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-      }
-      showmessage('<p>测试结果：'.($vaildity?'stoken有效！':'stoken无效！').'</p><p>BDUSS='.$setting['cookie'].'</p><p>STOKEN='.$setting['stoken'].'</p>', './#setting', 1);
+      $vaildity=get_verified_stoken_from_uid($uid, true);
+      showmessage('<p>测试结果：'.($vaildity?'stoken有效！':'stoken无效！').'</p>', './#setting', 1);
       break;
     case 'clear_cookie':
       if($_GET['formhash'] != $formhash) break;
@@ -123,7 +82,7 @@ if(!$uid){
         'force_sign' => $_POST['force_sign'] ? 1 : 0,
         'stoken' => $_POST['stoken'] ? $_POST['stoken'] : null,
         ), "uid='{$uid}'");
-      CACHE::save('user_setting_'.$uid, '');
+      CACHE::clear();
       showmessage('设置已经保存', './#setting', 1);
       break;
     case 'change_password':

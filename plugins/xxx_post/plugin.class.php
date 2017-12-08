@@ -11,7 +11,7 @@ class plugin_xxx_post extends Plugin{
   );
   var $version='0.3.4';
   function checkCompatibility(){
-    if(version_compare(VERSION, '1.17.12.5', '<')) showmessage('签到助手版本过低，请升级');
+    if(version_compare(VERSION, '1.17.12.7', '<')) showmessage('签到助手版本过低，请升级');
   }
   function page_footer_js() {
     echo '<script src="plugins/xxx_post/main.js"></script>';

@@ -174,20 +174,7 @@ function client_rppost($uid, $tieba, $content=null) {
   $BDUSS = trim ( $matches [1] );
   
   if (! $BDUSS) return array (- 1,'找不到 BDUSS Cookie' );
-  if($setting['stoken']){  
-    $setting['stoken']=base64_decode($setting['stoken']);
-    $stokenhash=md5($BDUSS.$setting['stoken']);
-    if(defined('DEBUG_ENABLED')) echo('STOKENHASH='.$stokenhash.', expected '.$setting['checked']);
-    if($setting['checked']!=$stokenhash){
-      if(defined('DEBUG_ENABLED')) echo('stokenhash does not match');
-      if($vaildity=check_stoken($BDUSS, $setting['stoken'])){
-        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
-      }else{
-        if(defined('DEBUG_ENABLED')) echo('stoken verification failed.');
-        $setting['stoken']=null;
-      }
-    }
-  }
+  if($setting['stoken']) $setting['stoken'] = get_verified_stoken_from_uid($uid);
   list($clientid, $phoneimei, $cuid, $zid)=device_id($BDUSS, 3);
   if (! $content) $content=get_random_content();
   $tid=$tieba['tid'];
@@ -249,7 +236,7 @@ function client_rppost($uid, $tieba, $content=null) {
       if ($re->error_code == 0){
         return array (2,'Windows8客户端发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
       }else{
-        return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
+        return array($re->error_code, $re->error_code.':'. $re->error_msg);
       }
       break;
     case 1:
@@ -353,7 +340,7 @@ function client_rppost($uid, $tieba, $content=null) {
       if ($re->error_code == 0){
         return array (2,'Android客户端发帖成功，<a href="https://tieba.baidu.com/p/' . $tieba ['tid'] . '" target="_blank">查看帖子</a>');
       }else{
-        return array($re->error_code, $re->error_code.':'. $re->error_msg.'<br /><br />调试信息：'.$data);
+        return array($re->error_code, $re->error_code.':'. $re->error_msg);
       }
      
   }//end switch

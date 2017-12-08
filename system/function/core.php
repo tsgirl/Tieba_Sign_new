@@ -408,6 +408,39 @@ function cron_set_nextrun($timestamp){
 	$nextrun = DB::fetch_first("SELECT nextrun FROM cron ORDER BY nextrun ASC LIMIT 0,1");
 	saveSetting('next_cron', $nextrun ? $nextrun['nextrun'] : TIMESTAMP + 1200);
 }
+function get_verified_stoken_from_uid($uid, $force=0){
+  $setting = get_setting($uid);
+  $matches=explode('=', base64_decode($setting['cookie']));
+  $setting['cookie'] = trim($matches[1]);
+  $stoken=base64_decode($setting['stoken']);
+  $stokenhash=md5($setting['cookie'].$stoken);
+  $stokenhashInvaild=$stokenhash.'#invaild';
+  if(defined('DEBUG_ENABLED')) echo '<br />checked stokenhash is '.$setting['checked'].', expected '.$stokenhash.' or '.$stokenhashInvaild;
+  if($setting['checked']==$stokenhashInvaild&&!$force){
+    if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' has an invaild stoken!!!';
+    $stoken=null;
+  }else{
+    if($force||$setting['checked']!=$stokenhash){
+      if(defined('DEBUG_ENABLED')) echo '<br />checking stoken of uid '.$uid.' ...';
+      if($vaildity=check_stoken($setting['cookie'], $stoken)){
+        if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is vaild!!!';
+        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      }else{
+        if(defined('DEBUG_ENABLED')) echo '<br />uid '.$uid.' stoken is invaild!!!';
+        $stoken=null;
+        $stokenhash.='#invaild';
+        DB::query("UPDATE `member_setting` SET `checked`='{$stokenhash}' WHERE `uid`='{$uid}';");
+      }
+    }
+  }
+  return $stoken;
+}
+function get_bduss($uid){
+  $setting = get_setting($uid);
+  $matches=explode('=', base64_decode($setting['cookie']));
+  $setting['cookie'] = trim($matches[1]);
+  return $setting['cookie'];
+}
 // Function link
 function get_tbs($uid){
 	require_once SYSTEM_ROOT.'./function/sign.php';
@@ -423,7 +456,7 @@ function get_baidu_userinfo($uid){
 }
 function client_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
-              if($stoken) return _client_sign_new($uid, $tieba, $bduss, $stoken);
+  if($stoken) return _client_sign_new($uid, $tieba, $bduss, $stoken);
 	return _client_sign($uid, $tieba, $bduss, $stoken);
 }
 function wap_sign($uid, $tieba, $bduss=null, $stoken=null){

@@ -454,6 +454,7 @@ function _client_sign($uid, $tieba, $BDUSS=null, $stoken=null){
     case 340006:    // this tieba is banned!!!
       return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
     default:
+      if($res['error_code']>=3250000) return array(2, $res['error_msg'], 0);
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
     
   }
@@ -533,6 +534,7 @@ function _client_sign_new($uid, $tieba, $BDUSS=null, $stoken){
     case 340006:    // this tieba is banned!!!
       return array(2, "ERROR-{$res['error_code']}: {$res['error_msg']}", 340001);
     default:
+      if($res['error_code']>=3250000) return array(2, $res['error_msg'], 0);
       return array(1, "ERROR-{$res['error_code']}: {$res['error_msg']}", 0);
     
   }
