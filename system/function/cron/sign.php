@@ -5,6 +5,7 @@ $count = DB::result_first("SELECT COUNT(*) FROM `sign_log` WHERE status IN (0, 1
 $maxe = ini_get('max_execution_time');
 $multi_thread = getSetting('channel') == 'dev' && getSetting('multi_thread');
 $endtime = $maxe ? (TIMESTAMP + ceil(0.9*$maxe)) : TIMESTAMP + 45;
+$uid=0;
 if($nowtime - $today < 3600){
   cron_set_nextrun(TIMESTAMP + 3600);//确保在1:00后执行，防止一键签到出错
 }elseif($count){
@@ -16,7 +17,7 @@ if($nowtime - $today < 3600){
   while($endtime > time()){
     if(defined('DEBUG_ENABLED'))  echo '<br />';
     if($count <= 0) break;
-    $offset = getSetting('random_sign') ? rand(1, $count) - 1 : 0;
+    $offset = rand(1, $count) - 1;
     $res = DB::fetch_first("SELECT tid, status, retry, error_log FROM `sign_log` WHERE status IN (0, 1) AND date='{$date}' ORDER BY uid LIMIT {$offset},1");
     $retry = $res['retry']+34;
     $tid = $res['tid'];
@@ -29,6 +30,7 @@ if($nowtime - $today < 3600){
       DB::query("UPDATE sign_log set status='-2' WHERE tid='{$tieba['tid']}' AND date='{$date}'");
       continue;
     }
+    if($uid==$tieba['uid']) sleep(rand(2,5));
     $uid = $tieba['uid'];
     $setting = get_setting($uid);
     $matches=explode('=', base64_decode($setting['cookie']));
@@ -42,7 +44,7 @@ if($nowtime - $today < 3600){
         case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba, $setting['cookie']); break;
         default : list($status, $result, $exp) = client_sign($uid, $tieba, $setting['cookie']);
       }
-      array_push($error_log, Array('status'=>$status, 'error'=>$result, 'retry'=>$retry, 'sign_method'=>$setting['sign_method']));
+      array_push($error_log, Array('status'=>$status, 'error'=>$result, 'exp'=>$exp, 'retry'=>$retry, 'sign_method'=>$setting['sign_method']));
       if(defined('DEBUG_ENABLED')) echo '<br />result:'.$status.'->'.$result.'('.$exp.')';
     }else{
       DB::query("UPDATE sign_log SET status='-1' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
@@ -53,7 +55,7 @@ if($nowtime - $today < 3600){
       if($setting['force_sign'] == 1){//do onekey sign
         if(defined('DEBUG_ENABLED')) echo '<br />onekey sign for uid'.$uid.'...';
         list($status, $result, $exp) = onekey_sign($uid, $setting['cookie']);
-        array_push($error_log, Array('status'=>$status, 'error'=>$result, 'retry'=>$retry, 'sign_method'=>'onekey'));
+        array_push($error_log, Array('status'=>$status, 'error'=>$result, 'exp'=>$exp, 'retry'=>$retry, 'sign_method'=>'onekey'));
         if(defined('DEBUG_ENABLED')) echo '<br />result:'.$status.'->'.$result;
         if($status==2){//onekey success
           if($exp){//returns signed tieba
@@ -61,7 +63,7 @@ if($nowtime - $today < 3600){
               DB::query("UPDATE sign_log SET status='2', exp='{$exp[$x]['loyalty_score']['normal_score']}' WHERE fid='{$exp[$x]['forum_id']}' AND date='{$date}' AND uid='{$uid}'");
               $count--;
             }
-            sleep(1);
+            //sleep(1);
             continue;
           }else{//onekey sign done before
             DB::query("UPDATE sign_log SET status='2' WHERE tid='{$tieba['tid']}' AND date='{$date}' AND status<2");
@@ -102,7 +104,7 @@ if($nowtime - $today < 3600){
     $error_log = base64_encode(json_encode($error_log));
     DB::query("UPDATE sign_log SET error_log='{$error_log}' WHERE tid='{$tieba['tid']}' AND date='{$date}'");
     if($time){
-      sleep($time);
+      //sleep($time);
       $count--;
     }
   }
