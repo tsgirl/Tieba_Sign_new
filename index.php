@@ -25,26 +25,15 @@ if(!$uid){
       $tieba = DB::fetch_first("SELECT * FROM my_tieba WHERE uid='{$uid}' ORDER BY RAND() LIMIT 0,1");
       if(!$tieba) showmessage('没有喜欢的贴吧，请先刷新喜欢的贴吧列表', './#liked_tieba');
       $setting = get_setting($uid);
-      if(!$setting['cookie']){
-        showmessage('找不到 BDUSS Cookie', './#setting', 1);
-        break;
-      }
-      $matches=explode('=', base64_decode($setting['cookie']));
-      $setting['cookie'] = trim($matches[1]);
-      if(!$setting['cookie']){
-        showmessage('找不到 BDUSS Cookie', './#setting', 1);
-        break;
-      }
-      unset($matches);
-      if($setting['stoken']) $setting['stoken'] = get_verified_stoken_from_uid($uid);
+      if(isset($_REQUEST['sign_method'])) $setting['sign_method']=$_REQUEST['sign_method'];//方便测试
       switch ($setting['sign_method']){
-        case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
-        case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba, $setting['cookie'], $setting['stoken']); break;
-        default : list($status, $result, $exp) = client_sign($uid, $tieba, $setting['cookie'], $setting['stoken']);
+        case 1  : list($status, $result, $exp) = pc_sign($uid, $tieba); break;
+        case 2  : list($status, $result, $exp) = wap_sign($uid, $tieba); break;
+        default : list($status, $result, $exp) = client_sign($uid, $tieba);
       }
       if($exp == 340001){
         if($setting['force_sign'] == 1){
-          list($status, $result, $exp) = onekey_sign($uid, $setting['cookie'], $setting['stoken']);
+          list($status, $result, $exp) = onekey_sign($uid);
         }
       }
       $status = $status==2 ? '签到成功' : '签到失败';
@@ -72,7 +61,9 @@ if(!$uid){
       break;
     case 'update_setting':
       if($_POST['formhash'] != $formhash) break;
-      if(trim($_POST['stoken'])) $_POST['stoken']=base64_encode(trim($_POST['stoken']));
+      if(!is_numeric($_POST['sign_method'])) $_POST['sign_method']=3;
+      if($_POST['stoken']) $_POST['stoken']=base64_encode(trim($_POST['stoken']));
+      if($_POST['autoagree']) $_POST['autoagree']=base64_encode(trim($_POST['autoagree']));
       DB::update('member_setting', array(
         'sign_method' => $_POST['sign_method'],
         'error_mail' => $_POST['error_mail'] ? 1 : 0,
@@ -81,6 +72,7 @@ if(!$uid){
         'wenku_sign' => $_POST['wenku_sign'] ? 1 : 0,
         'force_sign' => $_POST['force_sign'] ? 1 : 0,
         'stoken' => $_POST['stoken'] ? $_POST['stoken'] : null,
+        'autoagree' => $_POST['autoagree'] ? $_POST['autoagree'] : null
         ), "uid='{$uid}'");
       CACHE::clear();
       showmessage('设置已经保存', './#setting', 1);

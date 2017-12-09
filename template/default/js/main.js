@@ -146,9 +146,11 @@ function load_setting(){
 		$('#send_mail').attr('checked', result.send_mail == "1");
 		$('#zhidao_sign').attr('checked', result.zhidao_sign == "1");
 		$('#wenku_sign').attr('checked', result.wenku_sign == "1");
-		$('#sign_method_1').attr('checked', result.sign_method == "1");
-		$('#sign_method_2').attr('checked', result.sign_method == "2");
-		$('#sign_method_3').attr('checked', result.sign_method == "3");
+		$('input[name=sign_method]').attr('checked', false);
+		switch(result.sign_method){
+			case '1': case '2': case '3': $('#sign_method_'+result.sign_method).prop('checked', true); break;
+			default: $('#sign_method_3').prop('checked', true);
+		}
 		$('#force_sign').attr('checked', result.force_sign == "1");
 		$('#bdbowser').removeAttr('disabled');
 		$('#error_mail').removeAttr('disabled');
@@ -157,6 +159,7 @@ function load_setting(){
 		$('#wenku_sign').removeAttr('disabled');
 		$('#force_sign').removeAttr('disabled');
 		$('#stoken').attr('value', result.stoken ? result.stoken : "");
+		$('#autoagree').attr('value', result.autoagree ? result.autoagree : "");
 	}).fail(function() { createWindow().setTitle('系统错误').setContent('发生未知错误: 无法获取系统设置').addButton('确定', function(){ location.reload(); }).append(); }).always(function(){ hideloading(); });
 }
 function load_guide(){
@@ -176,7 +179,7 @@ function load_baidu_bind(){
 			var avatar_img = 'http://himg.baidu.com/sys/portraitm/item/' + result.user.portraith;
 			$('#avatar_img').attr('src', avatar_img);
 			$('#avatar_img').removeClass('hidden');
-			$('.tab-binded div').append('<img src="http://himg.baidu.com/sys/portraitm/item/' + result.user.portraith + '" class="float-left">');
+			$('.tab-binded div').append('<img src="//himg.baidu.com/sys/portraitm/item/' + result.user.portraith + '" class="float-left">');
 			$('.tab-binded div').append('<p>百度帐号：<a href="http://www.baidu.com/p/' + result.user.name + '?ie=utf-8" target="_blank">' + result.user.name + '</a></p>');
 			$('.tab-binded div').append('<p>关注贴吧数：' + result.user.my_like_num + '</p>');
 			$('.tab-binded div').append('<p>发贴量：' + result.user.post_num + '</p>');

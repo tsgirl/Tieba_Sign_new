@@ -4,10 +4,11 @@ define('IN_KKFRAME', true);
 define('SYSTEM_ROOT', dirname(__FILE__).'/');
 define('ROOT', dirname(SYSTEM_ROOT).'/');
 define('TIMESTAMP', time());
-define('VERSION', '1.17.12.8');
+define('VERSION', '1.17.12.9');
 define('UI_VERSION', '1.0');
-
-if(isset($_GET['debug'])) define('DEBUG_ENABLED', $_GET['debug']);
+define('CLIENT_VERSION', '6.6.6');
+define('CLIENT_VERSION_NEW', '9.0.8.0');
+if(isset($_GET['debug'])) define('DEBUG_ENABLED', true);
 if(defined('DEBUG_ENABLED')){
   error_reporting(E_ALL);
   @ini_set('display_errors', 'on');

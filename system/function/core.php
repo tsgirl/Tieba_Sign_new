@@ -177,11 +177,16 @@ function wrap_text($str) {
 	$str = str_replace(' ', '', $str);
     return trim($str);
 }
-function get_cookie($uid){
+function get_cookie($uid, $direct=0){
 	static $cookie = array();
 	if(isset($cookie[$uid])) return $cookie[$uid];
-	$cookie[$uid] = DB::result_first("SELECT cookie FROM member_setting WHERE uid='{$uid}'");
-	$cookie[$uid] = base64_decode($cookie[$uid]);
+	if($direct){
+	  $cookie[$uid] = DB::result_first("SELECT cookie FROM member_setting WHERE uid='{$uid}'");
+	  $cookie[$uid] = base64_decode($cookie[$uid]);
+	}else{
+    $setting = get_setting($uid);
+    $cookie[$uid] = base64_decode($setting['cookie']);
+  }
 	return $cookie[$uid];
 }
 function save_cookie($uid, $cookie){
@@ -410,8 +415,10 @@ function cron_set_nextrun($timestamp){
 }
 function get_verified_stoken_from_uid($uid, $force=0){
   $setting = get_setting($uid);
+  if(!$setting['stoken']) return null;
   $matches=explode('=', base64_decode($setting['cookie']));
   $setting['cookie'] = trim($matches[1]);
+  unset($matches);
   $stoken=base64_decode($setting['stoken']);
   $stokenhash=md5($setting['cookie'].$stoken);
   $stokenhashInvaild=$stokenhash.'#invaild';
@@ -441,6 +448,39 @@ function get_bduss($uid){
   $setting['cookie'] = trim($matches[1]);
   return $setting['cookie'];
 }
+function client_submit($url, $array){
+  $x='';
+  if(!isset($array['sign'])){
+    foreach($array as $k=>$v){
+      $x.=$k.'='.$v;
+    }
+    if(defined('DEBUG_ENABLED')) echo $x;
+    $array['sign'] = strtoupper(md5($x.'tiebaclient!!!'));
+  }
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+    'Accept: application/json',
+    'Accept-Language: zh-CN,zh; q=0.9',
+    'cuid: '.$array['cuid'],
+    'client_logid: '.time().rand(111,999),
+    'net: 3'
+  ));
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_COOKIE, 'ka=open');
+  curl_setopt($ch, CURLOPT_USERAGENT, 'bdtb for Android '.($array['_client_version']?$array['_client_version']:'6.6.6'));
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($array));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+  $gd = curl_exec($ch);
+  curl_close($ch);
+  return $gd;
+}
 // Function link
 function get_tbs($uid){
 	require_once SYSTEM_ROOT.'./function/sign.php';
@@ -456,6 +496,7 @@ function get_baidu_userinfo($uid){
 }
 function client_sign($uid, $tieba, $bduss=null, $stoken=null){
 	require_once SYSTEM_ROOT.'./function/sign.php';
+	if(!$stoken) $stoken=get_verified_stoken_from_uid($uid);
   if($stoken) return _client_sign_new($uid, $tieba, $bduss, $stoken);
 	return _client_sign($uid, $tieba, $bduss, $stoken);
 }
@@ -511,3 +552,13 @@ function device_id($bduss, $index=0){
   require_once SYSTEM_ROOT.'./function/sign.php';
   return _device_id($bduss, $index);
 }
+function get_frs($uid, $tieba, $bduss=null, $pn=1){
+	require_once SYSTEM_ROOT.'./function/sign.php';
+	return _get_frs($uid, $tieba, $bduss, $pn);
+}
+function op_agree($uid, $fid, $tid, $pid=null, $tbs=null, $BDUSS=null, $stoken=null){
+  require_once SYSTEM_ROOT.'./function/sign.php';
+  return _op_agree($uid, $fid, $tid, $pid, $tbs, $BDUSS, $stoken);
+}
+
+
