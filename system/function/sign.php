@@ -72,7 +72,7 @@ function _verify_cookie($cookie){
   );
   $res = json_decode(client_submit('http://c.tieba.baidu.com/c/f/frs/page', $pda), true);
   if($res['error_code']==0){
-    return $gd['user']['is_login'];
+    return $res['user']['is_login'];
   }else{
     return $res['error_code'];
   }
